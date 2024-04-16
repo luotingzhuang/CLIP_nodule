@@ -6,12 +6,12 @@ from tqdm import tqdm
 
 import torch
 from torch import nn
-from transformers import DistilBertTokenizer
-
+import monai
 import config as CFG
-from dataset import CLIPDataset, get_transforms
+from dataset import CLIPDataset
 from CLIP import CLIPModel
-from utils import AvgMeter, get_lr
+from utils import AvgMeter, get_lr, EarlyStopping
+from tensorboardX import SummaryWriter
 
 
 def make_train_valid_dfs():
@@ -28,65 +28,107 @@ def make_train_valid_dfs():
     return train_dataframe, valid_dataframe
 
 
-def build_loaders(dataframe, tokenizer, mode):
-    transforms = get_transforms(mode=mode)
+def build_loaders(CFG, mode):
     dataset = CLIPDataset(
-        dataframe["image"].values,
-        dataframe["caption"].values,
-        tokenizer=tokenizer,
-        transforms=transforms,
+        CFG.coord_path, CFG.semantic_path, mode = mode
     )
-    dataloader = torch.utils.data.DataLoader(
-        dataset,
-        batch_size=CFG.batch_size,
-        num_workers=CFG.num_workers,
-        shuffle=True if mode == "train" else False,
-    )
+    #if mode == "train":
+    #    shuffle = True
+    #else:
+    #    shuffle = False
+    dataloader = monai.data.DataLoader(dataset, 
+                          batch_size=CFG.batch_size, 
+                          num_workers=CFG.num_workers, 
+                          shuffle=True)
     return dataloader
 
 
 def train_epoch(model, train_loader, optimizer, lr_scheduler, step):
     loss_meter = AvgMeter()
+    acc_img_meter = AvgMeter()
+    acc_semantic_meter = AvgMeter()
+
     tqdm_object = tqdm(train_loader, total=len(train_loader))
     for batch in tqdm_object:
-        batch = {k: v.to(CFG.device) for k, v in batch.items() if k != "caption"}
-        loss = model(batch)
+        loss, acc_img, acc_sem = model(batch)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
         if step == "batch":
             lr_scheduler.step()
-
-        count = batch["image"].size(0)
+        #import pdb;pdb.set_trace()
+        count = batch[0].size(0)
         loss_meter.update(loss.item(), count)
+        acc_img_meter.update(acc_img, count)
+        acc_semantic_meter.update(acc_sem, count)
 
-        tqdm_object.set_postfix(train_loss=loss_meter.avg, lr=get_lr(optimizer))
-    return loss_meter
+        print(f"Train Loss: {loss.item()}, Acc Img: {acc_img}, Acc Text: {acc_sem}")
+
+        tqdm_object.set_postfix(train_loss=loss_meter.avg, train_acc_img=acc_img_meter.avg, 
+                                train_acc_semantic=acc_semantic_meter.avg,lr=get_lr(optimizer))
+    return loss_meter, acc_img_meter, acc_semantic_meter
 
 
 def valid_epoch(model, valid_loader):
     loss_meter = AvgMeter()
-
+    acc_img_meter = AvgMeter()
+    acc_semantic_meter = AvgMeter()
+    
     tqdm_object = tqdm(valid_loader, total=len(valid_loader))
     for batch in tqdm_object:
-        batch = {k: v.to(CFG.device) for k, v in batch.items() if k != "caption"}
-        loss = model(batch)
-
-        count = batch["image"].size(0)
+        loss, acc_img, acc_sem = model(batch)
+        count = batch[0].size(0)
         loss_meter.update(loss.item(), count)
+        acc_img_meter.update(acc_img, count)
+        acc_semantic_meter.update(acc_sem, count)
+        model.logit_scale.data = torch.clamp(model.logit_scale.data, 0, 4.6052)
 
-        tqdm_object.set_postfix(valid_loss=loss_meter.avg)
-    return loss_meter
+        print(f"Val Loss: {loss.item()}, Acc Img: {acc_img}, Acc Text: {acc_sem}")
+
+
+        tqdm_object.set_postfix(valid_loss=loss_meter.avg, val_acc_img=acc_img_meter.avg, val_acc_semantic=acc_semantic_meter.avg)
+    return loss_meter, acc_img_meter, acc_semantic_meter
+
 
 
 def main():
-    train_df, valid_df = make_train_valid_dfs()
-    tokenizer = DistilBertTokenizer.from_pretrained(CFG.text_tokenizer)
-    train_loader = build_loaders(train_df, tokenizer, mode="train")
-    valid_loader = build_loaders(valid_df, tokenizer, mode="valid")
 
+    result_path = CFG.result_path
+    exp_name = f'bz{CFG.batch_size}_j{CFG.jitter}_lr{CFG.lr}_wd{CFG.weight_decay}_pd{CFG.projection_dim}_dropout{CFG.dropout}_epochs{CFG.epochs}'
+    if CFG.general:
+        exp_name = f'{exp_name}_general'
+    if CFG.internal:
+        exp_name = f'{exp_name}_internal'
+    if CFG.external:
+        exp_name = f'{exp_name}_external'
 
-    model = CLIPModel().to(CFG.device)
+    result_path = os.path.join(result_path, exp_name)
+    if not os.path.exists(result_path):
+        os.makedirs(result_path)
+    else:
+        print("Folder already exists")
+        return
+
+    #save config
+    #save into python file
+    with open(os.path.join(result_path, 'config.py'), 'w') as f:
+        for key, value in CFG.__dict__.items():
+            if not key.startswith("__") and key != 'torch':
+                f.write(f"{key} = {value}\n")
+
+    writer = SummaryWriter(log_dir= result_path)
+    early_stopping = EarlyStopping(
+                warmup=CFG.es_warmup, patience=CFG.es_patience, verbose=True
+            )
+
+    train_loader = build_loaders(CFG, mode="train")
+    valid_loader = build_loaders(CFG, mode="val")
+
+    print('initialize model ...')
+    semantic_embedding = train_loader.dataset.semantic_features.shape[1]
+    print('image embedding:', CFG.image_embedding)
+    print('semantic embedding: ', semantic_embedding)
+    model = CLIPModel(semantic_embedding = semantic_embedding).to(CFG.device)
     optimizer = torch.optim.AdamW(
         model.parameters(), lr=CFG.lr, weight_decay=CFG.weight_decay
     )
@@ -99,16 +141,38 @@ def main():
     for epoch in range(CFG.epochs):
         print(f"Epoch: {epoch + 1}")
         model.train()
-        train_loss = train_epoch(model, train_loader, optimizer, lr_scheduler, step)
+        train_loss, train_acc_img, train_acc_sem = train_epoch(model, train_loader, optimizer, lr_scheduler, step)
+        writer.add_scalar('Loss/train', train_loss.avg, epoch)
+        writer.add_scalar('Acc/train_img', train_acc_img.avg, epoch)
+        writer.add_scalar('Acc/train_semantic', train_acc_sem.avg, epoch)
+
         model.eval()
         with torch.no_grad():
-            valid_loss = valid_epoch(model, valid_loader)
+            valid_loss, val_acc_img, val_acc_sem = valid_epoch(model, valid_loader)
+            writer.add_scalar('Loss/valid', valid_loss.avg, epoch)
+            writer.add_scalar('Acc/valid_img', val_acc_img.avg, epoch)
+            writer.add_scalar('Acc/valid_semantic', val_acc_sem.avg, epoch)
         
-        if valid_loss.avg < best_loss:
-            best_loss = valid_loss.avg
-            torch.save(model.state_dict(), "best.pt")
-            print("Saved Best Model!")
 
+        early_stop = early_stopping(
+                epoch=epoch,
+                val_loss=valid_loss.avg,
+                model=model,
+                ckpt_path=os.path.join(result_path,"best.pt"),
+            )
+        
+        state = {
+            "epoch": epoch + 1,
+            "model": model.state_dict(),
+            "optimizer": optimizer.state_dict(),
+            "early_stopping": early_stopping,
+        }
+
+        torch.save(state, os.path.join(result_path,f"ckpt_{epoch + 1}.pt"))
+
+        if early_stop:
+            print("Early Stopping")
+            break
 
 if __name__ == "__main__":
     main()

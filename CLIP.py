@@ -1,46 +1,65 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-
+import numpy as np
 import config as CFG
-from modules import ImageEncoder, TextEncoder, ProjectionHead
+from modules import ImageEncoder, ProjectionHead
 
 
 class CLIPModel(nn.Module):
     def __init__(
         self,
-        temperature=CFG.temperature,
+        #temperature=CFG.temperature,
         image_embedding=CFG.image_embedding,
-        text_embedding=CFG.text_embedding,
+        semantic_embedding= None#CFG.semantic_embedding,
     ):
         super().__init__()
         self.image_encoder = ImageEncoder()
-        self.text_encoder = TextEncoder()
         self.image_projection = ProjectionHead(embedding_dim=image_embedding)
-        self.text_projection = ProjectionHead(embedding_dim=text_embedding)
-        self.temperature = temperature
+        self.semantic_projection = ProjectionHead(embedding_dim=semantic_embedding)
+        #self.temperature = temperature
+        self.logit_scale = nn.Parameter(torch.log(torch.tensor(1 / 0.07)))
+        self.loss_img = nn.CrossEntropyLoss()
+        self.loss_sem = nn.CrossEntropyLoss()
 
     def forward(self, batch):
         # Getting Image and Text Features
-        image_features = self.image_encoder(batch["image"])
-        text_features = self.text_encoder(
-            input_ids=batch["input_ids"], attention_mask=batch["attention_mask"]
-        )
+        img = batch[0].to(CFG.device)
+        semantic_features = batch[1].to(CFG.device)
+        image_features = self.image_encoder(img)
+
         # Getting Image and Text Embeddings (with same dimension)
         image_embeddings = self.image_projection(image_features)
-        text_embeddings = self.text_projection(text_features)
+        semantic_embeddings = self.semantic_projection(semantic_features)
+
+        #normalize embeddings
+        image_embeddings = image_embeddings / image_embeddings.norm(dim=-1, keepdim=True)
+        semantic_embeddings = semantic_embeddings / semantic_embeddings.norm(dim=-1, keepdim=True)
 
         # Calculating the Loss
-        logits = (text_embeddings @ image_embeddings.T) / self.temperature
-        images_similarity = image_embeddings @ image_embeddings.T
-        texts_similarity = text_embeddings @ text_embeddings.T
-        targets = F.softmax(
-            (images_similarity + texts_similarity) / 2 * self.temperature, dim=-1
-        )
-        texts_loss = cross_entropy(logits, targets, reduction='none')
-        images_loss = cross_entropy(logits.T, targets.T, reduction='none')
-        loss =  (images_loss + texts_loss) / 2.0 # shape: (batch_size)
-        return loss.mean()
+        logit_scale = self.logit_scale.exp()
+        logits = (semantic_embeddings @ image_embeddings.T) * logit_scale#/ self.temperature
+        gt = torch.arange(logits.size(0)).to(CFG.device)
+        semantic_loss = self.loss_sem(logits, gt)
+        image_loss = self.loss_img(logits.T, gt)
+        loss = (semantic_loss + image_loss) / 2.0
+
+        #images_similarity = image_embeddings @ image_embeddings.T
+        #texts_similarity = semantic_embeddings @ semantic_embeddings.T
+
+        #targets = F.softmax(
+        #    (images_similarity + texts_similarity) / 2 * self.temperature, dim=-1
+        #)
+
+        #texts_loss = cross_entropy(logits, targets, reduction='none')
+        #images_loss = cross_entropy(logits.T, targets.T, reduction='none')
+        #loss =  (images_loss + texts_loss) / 2.0 # shape: (batch_size)
+
+        acc_sems = compute_accuracy(logits,gt)
+        acc_images = compute_accuracy(logits.T,gt)
+        #import pdb; pdb.set_trace()
+
+        return loss, acc_images, acc_sems
 
 
 def cross_entropy(preds, targets, reduction='none'):
@@ -50,6 +69,15 @@ def cross_entropy(preds, targets, reduction='none'):
         return loss
     elif reduction == "mean":
         return loss.mean()
+
+
+def compute_accuracy(logits,gt):
+    logits = F.softmax(logits, dim=-1)
+    predictions = torch.argmax(logits, dim=-1)
+    correct = (predictions == gt).sum().item()
+    total = gt.size(0)
+    accuracy = correct / total
+    return accuracy
 
 if __name__ == '__main__':
     images = torch.randn(8, 3, 224, 224)

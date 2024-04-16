@@ -1,9 +1,8 @@
 import torch
 from torch import nn
-import timm
-from transformers import DistilBertModel, DistilBertConfig
 import config as CFG
 
+from fmcib.models import LoadModel, fmcib_model
 
 class ImageEncoder(nn.Module):
     """
@@ -11,37 +10,13 @@ class ImageEncoder(nn.Module):
     """
 
     def __init__(
-        self, model_name=CFG.model_name, pretrained=CFG.pretrained, trainable=CFG.trainable
+        self, trainable=CFG.trainable
     ):
         super().__init__()
-        self.model = timm.create_model(
-            model_name, pretrained, num_classes=0, global_pool="avg"
-        )
-        for p in self.model.parameters():
-            p.requires_grad = trainable
+        self.model = fmcib_model()
 
     def forward(self, x):
         return self.model(x)
-
-
-class TextEncoder(nn.Module):
-    def __init__(self, model_name=CFG.text_encoder_model, pretrained=CFG.pretrained, trainable=CFG.trainable):
-        super().__init__()
-        if pretrained:
-            self.model = DistilBertModel.from_pretrained(model_name)
-        else:
-            self.model = DistilBertModel(config=DistilBertConfig())
-            
-        for p in self.model.parameters():
-            p.requires_grad = trainable
-
-        # we are using the CLS token hidden representation as the sentence's embedding
-        self.target_token_idx = 0
-
-    def forward(self, input_ids, attention_mask):
-        output = self.model(input_ids=input_ids, attention_mask=attention_mask)
-        last_hidden_state = output.last_hidden_state
-        return last_hidden_state[:, self.target_token_idx, :]
 
 
 
@@ -58,6 +33,11 @@ class ProjectionHead(nn.Module):
         self.fc = nn.Linear(projection_dim, projection_dim)
         self.dropout = nn.Dropout(dropout)
         self.layer_norm = nn.LayerNorm(projection_dim)
+
+        #kaiming initialization
+        nn.init.kaiming_normal_(self.projection.weight)
+        nn.init.kaiming_normal_(self.fc.weight)
+
     
     def forward(self, x):
         projected = self.projection(x)
@@ -67,4 +47,3 @@ class ProjectionHead(nn.Module):
         x = x + projected
         x = self.layer_norm(x)
         return x
-
