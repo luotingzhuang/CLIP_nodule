@@ -30,6 +30,6 @@ es_warmup = 0
 es_patience = 10
 
 general=True
-internal=False
-external=False
+internal=True
+external=True
 jitter = 10
