@@ -66,6 +66,8 @@ class EarlyStopping:
             self.lowest_val_loss = val_loss
             self.counter = 0
 
+        return self.early_stop
+
     def save_checkpoint(
         self, val_loss: float, model: torch.nn.Module, ckpt_path: str
     ) -> None:

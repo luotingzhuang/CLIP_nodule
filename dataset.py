@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 
 
 class CLIPDataset(CSVDataset):
-    def __init__(self, coord_path, semantic_path, mode = 'train',seed = 0):
+    def __init__(self, coord_path, semantic_path, mode = 'train',seed = 0,):
         if mode == 'train':
             self.transform = get_transforms(jitter = CFG.jitter)
         else:
@@ -63,9 +63,11 @@ class CLIPDataset(CSVDataset):
         if mode == 'train':
             coord_csv_sub = coord_csv.loc[train_ind]
             semantic_features_sub = semantic_features_processed.loc[train_ind]
+            self.pid = semantic_features.loc[train_ind][['pid','nodule_id']].reset_index(drop = True)
         else:
             coord_csv_sub = coord_csv.loc[val_ind]
             semantic_features_sub = semantic_features_processed.loc[val_ind]
+            self.pid = semantic_features.loc[val_ind][['pid','nodule_id']].reset_index(drop = True)
 
 
         self.semantic_features = semantic_features_sub.reset_index(drop = True)

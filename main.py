@@ -49,20 +49,26 @@ def train_epoch(model, train_loader, optimizer, lr_scheduler, step):
     acc_semantic_meter = AvgMeter()
 
     tqdm_object = tqdm(train_loader, total=len(train_loader))
-    for batch in tqdm_object:
+    for ind, batch in enumerate(tqdm_object):
         loss, acc_img, acc_sem = model(batch)
-        optimizer.zero_grad()
+        loss = loss / CFG.ga
         loss.backward()
-        optimizer.step()
+        if (ind + 1) % CFG.ga == 0:
+            optimizer.step()
+            optimizer.zero_grad()
+        
         if step == "batch":
             lr_scheduler.step()
-        #import pdb;pdb.set_trace()
+
+        model.logit_scale.data = torch.clamp(model.logit_scale.data, 0, 4.6052)
+
         count = batch[0].size(0)
         loss_meter.update(loss.item(), count)
         acc_img_meter.update(acc_img, count)
         acc_semantic_meter.update(acc_sem, count)
 
-        print(f"Train Loss: {loss.item()}, Acc Img: {acc_img}, Acc Text: {acc_sem}")
+        if (ind + 1) % CFG.ga == 0:
+            print(f"Train Loss: {loss.item()}, Acc Img: {acc_img}, Acc Text: {acc_sem}, logit_scale: { model.logit_scale.exp()}")
 
         tqdm_object.set_postfix(train_loss=loss_meter.avg, train_acc_img=acc_img_meter.avg, 
                                 train_acc_semantic=acc_semantic_meter.avg,lr=get_lr(optimizer))
@@ -81,11 +87,7 @@ def valid_epoch(model, valid_loader):
         loss_meter.update(loss.item(), count)
         acc_img_meter.update(acc_img, count)
         acc_semantic_meter.update(acc_sem, count)
-        model.logit_scale.data = torch.clamp(model.logit_scale.data, 0, 4.6052)
-
         print(f"Val Loss: {loss.item()}, Acc Img: {acc_img}, Acc Text: {acc_sem}")
-
-
         tqdm_object.set_postfix(valid_loss=loss_meter.avg, val_acc_img=acc_img_meter.avg, val_acc_semantic=acc_semantic_meter.avg)
     return loss_meter, acc_img_meter, acc_semantic_meter
 
@@ -94,14 +96,15 @@ def valid_epoch(model, valid_loader):
 def main():
 
     result_path = CFG.result_path
-    exp_name = f'bz{CFG.batch_size}_j{CFG.jitter}_lr{CFG.lr}_wd{CFG.weight_decay}_pd{CFG.projection_dim}_dropout{CFG.dropout}_epochs{CFG.epochs}'
+    exp_name = f'bz{CFG.batch_size}_j{CFG.jitter}_lr{CFG.lr}_wd{CFG.weight_decay}_pd{CFG.projection_dim}_dropout{CFG.dropout}_epochs{CFG.epochs}_ga{CFG.ga}'
     if CFG.general:
         exp_name = f'{exp_name}_general'
     if CFG.internal:
         exp_name = f'{exp_name}_internal'
     if CFG.external:
         exp_name = f'{exp_name}_external'
-
+    if CFG.freeze:
+        exp_name = f'{exp_name}_freeze'
     result_path = os.path.join(result_path, exp_name)
     if not os.path.exists(result_path):
         os.makedirs(result_path)
@@ -129,6 +132,14 @@ def main():
     print('image embedding:', CFG.image_embedding)
     print('semantic embedding: ', semantic_embedding)
     model = CLIPModel(semantic_embedding = semantic_embedding).to(CFG.device)
+    print('model initialized')
+    #computes total trainable weights
+
+    total_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f'Trainable parameters: {total_trainable_params}/{total_params}.')
+
+
     optimizer = torch.optim.AdamW(
         model.parameters(), lr=CFG.lr, weight_decay=CFG.weight_decay
     )
@@ -168,11 +179,12 @@ def main():
             "early_stopping": early_stopping,
         }
 
-        torch.save(state, os.path.join(result_path,f"ckpt_{epoch + 1}.pt"))
+        torch.save(state, os.path.join(result_path,f"ckpt.pt"))
 
         if early_stop:
             print("Early Stopping")
             break
 
 if __name__ == "__main__":
+
     main()

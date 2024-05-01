@@ -18,7 +18,7 @@ class CLIPModel(nn.Module):
         self.image_projection = ProjectionHead(embedding_dim=image_embedding)
         self.semantic_projection = ProjectionHead(embedding_dim=semantic_embedding)
         #self.temperature = temperature
-        self.logit_scale = nn.Parameter(torch.log(torch.tensor(1 / 0.07)))
+        self.logit_scale = nn.Parameter(torch.log(torch.tensor(1 / 0.7)))
         self.loss_img = nn.CrossEntropyLoss()
         self.loss_sem = nn.CrossEntropyLoss()
 
@@ -40,26 +40,26 @@ class CLIPModel(nn.Module):
         logit_scale = self.logit_scale.exp()
         logits = (semantic_embeddings @ image_embeddings.T) * logit_scale#/ self.temperature
         gt = torch.arange(logits.size(0)).to(CFG.device)
-        semantic_loss = self.loss_sem(logits, gt)
-        image_loss = self.loss_img(logits.T, gt)
-        loss = (semantic_loss + image_loss) / 2.0
+        #semantic_loss = self.loss_sem(logits, gt)
+        #image_loss = self.loss_img(logits.T, gt)
+        #loss = (semantic_loss + image_loss) / 2.0
 
-        #images_similarity = image_embeddings @ image_embeddings.T
-        #texts_similarity = semantic_embeddings @ semantic_embeddings.T
+        images_logits = image_embeddings @ image_embeddings.T
+        texts_logits = semantic_embeddings @ semantic_embeddings.T
 
-        #targets = F.softmax(
-        #    (images_similarity + texts_similarity) / 2 * self.temperature, dim=-1
-        #)
+        targets = F.softmax(
+            (images_logits + texts_logits) / 2 * logit_scale, dim=-1
+        )
+        print(targets)
 
-        #texts_loss = cross_entropy(logits, targets, reduction='none')
-        #images_loss = cross_entropy(logits.T, targets.T, reduction='none')
-        #loss =  (images_loss + texts_loss) / 2.0 # shape: (batch_size)
+        texts_loss = cross_entropy(logits, targets, reduction='none')
+        images_loss = cross_entropy(logits.T, targets.T, reduction='none')
+        loss =  (images_loss + texts_loss) / 2.0 # shape: (batch_size)
 
         acc_sems = compute_accuracy(logits,gt)
         acc_images = compute_accuracy(logits.T,gt)
-        #import pdb; pdb.set_trace()
 
-        return loss, acc_images, acc_sems
+        return loss.mean(), acc_images, acc_sems
 
 
 def cross_entropy(preds, targets, reduction='none'):
