@@ -3,6 +3,7 @@ from torch import nn
 import config as CFG
 
 from fmcib.models import LoadModel, fmcib_model
+from transformers import DistilBertModel, DistilBertConfig
 
 class ImageEncoder(nn.Module):
     """
@@ -27,18 +28,31 @@ class ImageEncoder(nn.Module):
         return self.model(x)
 
 
-class LowRankLinear(nn.Module):
-    def __init__(self, in_features, out_features, rank):
-        super(LowRankLinear, self).__init__()
-        self.in_features = in_features
-        self.out_features = out_features
-        self.rank = rank
-        self.U = nn.Parameter(torch.randn(in_features, rank))
-        self.V = nn.Parameter(torch.randn(rank, out_features))
+class TextEncoder(nn.Module):
+    def __init__(self, model_name=CFG.text_encoder_model, pretrained=CFG.pretrained, freeze=CFG.freeze):
+        super().__init__()
+        if pretrained:
+            model = DistilBertModel.from_pretrained(model_name)
+        else:
+            model = DistilBertModel(config=DistilBertConfig())
+            
+        if CFG.freeze:
+            for name, param in model.named_parameters():
+                param.requires_grad = False
+        else:
+            for name, param in model.named_parameters():
+                param.requires_grad = True
 
-    def forward(self, x):
-        return torch.mm(torch.mm(x, self.U), self.V)
+        # we are using the CLS token hidden representation as the sentence's embedding
+        self.target_token_idx = 0
 
+        self.model = model
+
+    def forward(self, input_ids, attention_mask):
+        output = self.model(input_ids=input_ids, attention_mask=attention_mask)
+        last_hidden_state = output.last_hidden_state
+        return last_hidden_state[:, self.target_token_idx, :]
+    
 
 class ProjectionHead(nn.Module):
     def __init__(

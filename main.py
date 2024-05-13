@@ -8,30 +8,22 @@ import torch
 from torch import nn
 import monai
 import config as CFG
-from dataset.dataset import CLIPDataset
+from dataset.dataset_onehot import CLIPDataset
+from dataset.dataset_text import CLIPDatasetText
 from models.CLIP import CLIPModel
 from utils.utils import AvgMeter, get_lr, EarlyStopping
 from tensorboardX import SummaryWriter
 
 
-def make_train_valid_dfs():
-    dataframe = pd.read_csv(f"{CFG.captions_path}/captions.csv")
-    max_id = dataframe["id"].max() + 1 if not CFG.debug else 100
-    image_ids = np.arange(0, max_id)
-    np.random.seed(42)
-    valid_ids = np.random.choice(
-        image_ids, size=int(0.2 * len(image_ids)), replace=False
-    )
-    train_ids = [id_ for id_ in image_ids if id_ not in valid_ids]
-    train_dataframe = dataframe[dataframe["id"].isin(train_ids)].reset_index(drop=True)
-    valid_dataframe = dataframe[dataframe["id"].isin(valid_ids)].reset_index(drop=True)
-    return train_dataframe, valid_dataframe
-
-
 def build_loaders(CFG, mode):
-    dataset = CLIPDataset(
-        CFG.coord_path, CFG.semantic_path, mode = mode
-    )
+    if CFG.text:
+        dataset = CLIPDatasetText(
+            CFG.coord_path, CFG.semantic_path, mode = mode
+        )
+    else:
+        dataset = CLIPDataset(
+            CFG.coord_path, CFG.semantic_path, mode = mode
+        )
     #if mode == "train":
     #    shuffle = True
     #else:
@@ -92,6 +84,23 @@ def valid_epoch(model, valid_loader):
     return loss_meter, acc_img_meter, acc_semantic_meter
 
 
+def init_model(train_loader):
+
+    if CFG.text:
+        print('image embedding:', CFG.image_embedding)
+        print('semantic->text embedding: ', CFG.text_embedding)
+        model = CLIPModel(image_embedding = CFG.image_embedding, text_embedding = CFG.text_embedding).to(CFG.device)
+        print('model initialized')
+
+    else:
+        print('initialize model ...')
+        semantic_embedding = train_loader.dataset.semantic_features.shape[1]
+        print('image embedding:', CFG.image_embedding)
+        print('semantic embedding: ', semantic_embedding)
+        model = CLIPModel(semantic_embedding = semantic_embedding).to(CFG.device)
+        print('model initialized')
+
+    return model
 
 def main():
 
@@ -126,15 +135,9 @@ def main():
 
     train_loader = build_loaders(CFG, mode="train")
     valid_loader = build_loaders(CFG, mode="val")
-
-    print('initialize model ...')
-    semantic_embedding = train_loader.dataset.semantic_features.shape[1]
-    print('image embedding:', CFG.image_embedding)
-    print('semantic embedding: ', semantic_embedding)
-    model = CLIPModel(semantic_embedding = semantic_embedding).to(CFG.device)
-    print('model initialized')
-    #computes total trainable weights
-
+    
+    # init model and computes total trainable weights
+    model = init_model(train_loader)
     total_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total_params = sum(p.numel() for p in model.parameters())
     print(f'Trainable parameters: {total_trainable_params}/{total_params}.')
@@ -148,7 +151,6 @@ def main():
     )
     step = "epoch"
 
-    best_loss = float('inf')
     for epoch in range(CFG.epochs):
         print(f"Epoch: {epoch + 1}")
         model.train()

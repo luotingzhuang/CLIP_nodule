@@ -7,6 +7,14 @@ from monai.config.type_definitions import NdarrayOrTensor
 from monai.transforms import MapTransform, Transform
 from monai import transforms as monai_transforms
 import torchvision
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+
+def calculate_similarity(sentence1, sentence2):
+    vectorizer = CountVectorizer().fit_transform([sentence1, sentence2])
+    vectors = vectorizer.toarray()
+    return cosine_similarity([vectors[0]], [vectors[1]])[0][0]
 
 
 class AvgMeter:

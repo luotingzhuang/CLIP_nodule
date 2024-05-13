@@ -16,10 +16,14 @@ ga = 1
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 image_embedding = 4096
+text_embedding = 768
 max_length = 200
 
+text = True
 pretrained = True # for both image encoder and text encoder
 freeze = True # for both image encoder and text encoder
+text_encoder_model = "distilbert-base-uncased"
+text_tokenizer = "distilbert-base-uncased"
 
 # for projection head; used for both image and text encoders
 num_projection_layers = 1
@@ -30,6 +34,6 @@ es_warmup = 0
 es_patience = 10
 
 general=True
-internal=True
+internal=False
 external=True
 jitter = 10

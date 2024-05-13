@@ -3,7 +3,7 @@ from torch import nn
 import torch.nn.functional as F
 import numpy as np
 import config as CFG
-from models.modules import ImageEncoder, ProjectionHead
+from models.modules import ImageEncoder, TextEncoder, ProjectionHead
 
 
 class CLIPModel(nn.Module):
@@ -15,18 +15,26 @@ class CLIPModel(nn.Module):
     ):
         super().__init__()
         self.image_encoder = ImageEncoder()
+        if CFG.text:
+            self.semantic_encoder = TextEncoder()
+
         self.image_projection = ProjectionHead(embedding_dim=image_embedding)
         self.semantic_projection = ProjectionHead(embedding_dim=semantic_embedding)
         #self.temperature = temperature
         self.logit_scale = nn.Parameter(torch.log(torch.tensor(1 / 0.7)))
-        self.loss_img = nn.CrossEntropyLoss()
-        self.loss_sem = nn.CrossEntropyLoss()
+        #self.loss_img = nn.CrossEntropyLoss()
+        #self.loss_sem = nn.CrossEntropyLoss()
 
     def forward(self, batch):
         # Getting Image and Text Features
         img = batch[0].to(CFG.device)
-        semantic_features = batch[1].to(CFG.device)
+        #semantic_features = batch[1].to(CFG.device)
+
         image_features = self.image_encoder(img)
+        if CFG.text:
+            semantic_features = self.semantic_encoder(batch[2].to(CFG.device), batch[3].to(CFG.device)) #input_ids, attention_mask
+        else:
+            semantic_features = batch[1].to(CFG.device)
 
         # Getting Image and Text Embeddings (with same dimension)
         image_embeddings = self.image_projection(image_features)
@@ -78,17 +86,3 @@ def compute_accuracy(logits,gt):
     total = gt.size(0)
     accuracy = correct / total
     return accuracy
-
-if __name__ == '__main__':
-    images = torch.randn(8, 3, 224, 224)
-    input_ids = torch.randint(5, 300, size=(8, 25))
-    attention_mask = torch.ones(8, 25)
-    batch = {
-        'image': images,
-        'input_ids': input_ids,
-        'attention_mask': attention_mask
-    }
-
-    CLIP = CLIPModel()
-    loss = CLIP(batch)
-    print("")
