@@ -3,7 +3,7 @@ from torch import nn
 import torch.nn.functional as F
 import numpy as np
 import config as CFG
-from modules import ImageEncoder, ProjectionHead
+from models.modules import ImageEncoder, ProjectionHead
 
 
 class CLIPModel(nn.Module):

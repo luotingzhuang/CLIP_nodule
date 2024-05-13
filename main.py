@@ -8,9 +8,9 @@ import torch
 from torch import nn
 import monai
 import config as CFG
-from dataset import CLIPDataset
-from CLIP import CLIPModel
-from utils import AvgMeter, get_lr, EarlyStopping
+from dataset.dataset import CLIPDataset
+from models.CLIP import CLIPModel
+from utils.utils import AvgMeter, get_lr, EarlyStopping
 from tensorboardX import SummaryWriter
 
 
