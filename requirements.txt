@@ -5,5 +5,7 @@ monai==1.4.0
 foundation-cancer-image-biomarker
 
 #openai clip
-pip install ftfy regex tqdm
-pip install git+https://github.com/openai/CLIP.git
+ftfy==6.3.1
+regex==2023.12.25
+tqdm==4.66.2
+git+https://github.com/openai/CLIP.git
