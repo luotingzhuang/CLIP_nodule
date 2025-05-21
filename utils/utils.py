@@ -10,58 +10,86 @@ from monai.transforms import MapTransform, Transform
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
 def init_model(args):
-    '''
+    """
     Initialize the model based on the provided arguments.
     Args:
         args: Arguments loaded from the saved model
     Returns:
         model: CLIP model
-    '''
+    """
     model = CLIPModel(args)
 
-    if 'ft' in args.tuning:
+    if "ft" in args.tuning:
         print("Full tuning")
-    elif args.tuning == 'pt':
+    elif args.tuning == "pt":
         print("Probe tuning")
         for name, param in model.named_parameters():
             param.requires_grad = False
         for name, param in model.named_parameters():
-            if 'image_projection' in name or 'semantic_projection' in name or 'classifier_image' in name or 'classifier_text' in name or 'logit_scale' in name:
+            if (
+                "image_projection" in name
+                or "semantic_projection" in name
+                or "classifier_image" in name
+                or "classifier_text" in name
+                or "logit_scale" in name
+            ):
                 param.requires_grad = True
 
-    elif args.tuning == 'lora':
+    elif args.tuning == "lora":
         print("LoRA tuning")
-        args.backbone = args.model.split('_')[1]
+        args.backbone = args.model.split("_")[1]
         list_lora_layers = apply_lora(args, model)
         mark_only_lora_as_trainable(model)
 
         for name, param in model.named_parameters():
-            if 'image_projection' in name or 'semantic_projection' in name or 'classifier_image' in name or 'classifier_text' in name or 'logit_scale' in name:
+            if (
+                "image_projection" in name
+                or "semantic_projection" in name
+                or "classifier_image" in name
+                or "classifier_text" in name
+                or "logit_scale" in name
+            ):
                 param.requires_grad = True
 
     model = model.to(device)
     return model
 
 
-def get_transforms_raw(spatial_size=(50, 50, 50), precropped=False, jitter = None):
+def get_transforms_raw(spatial_size=(50, 50, 50), precropped=False, jitter=None):
     return monai_transforms.Compose(
         [
-            monai_transforms.LoadImaged(keys=["image_path"], image_only=True, reader="ITKReader"),
+            monai_transforms.LoadImaged(
+                keys=["image_path"], image_only=True, reader="ITKReader"
+            ),
             monai_transforms.EnsureChannelFirstd(keys=["image_path"]),
             monai_transforms.Spacingd(
-                keys=["image_path"], pixdim=1, padding_mode="zeros", mode="linear", align_corners=True, diagonal=True
+                keys=["image_path"],
+                pixdim=1,
+                padding_mode="zeros",
+                mode="linear",
+                align_corners=True,
+                diagonal=True,
             ),
             monai_transforms.Orientationd(keys=["image_path"], axcodes="LPS"),
             SeedBasedPatchCropd(
-                keys=["image_path"], roi_size=spatial_size[::-1], coord_orientation="LPS", global_coordinates=True, jitter = jitter
+                keys=["image_path"],
+                roi_size=spatial_size[::-1],
+                coord_orientation="LPS",
+                global_coordinates=True,
+                jitter=jitter,
             ),
             monai_transforms.SelectItemsd(keys=["image_path"]),
             monai_transforms.Transposed(keys=["image_path"], indices=(0, 3, 2, 1)),
-            monai_transforms.SpatialPadd(keys=["image_path"], spatial_size=spatial_size),
+            monai_transforms.SpatialPadd(
+                keys=["image_path"], spatial_size=spatial_size
+            ),
             torchvision.transforms.Lambda(lambda x: x["image_path"].as_tensor()),
         ]
     )
+
+
 class SeedBasedPatchCropd(MapTransform):
     """
     A class representing a seed-based patch crop transformation.
@@ -76,8 +104,15 @@ class SeedBasedPatchCropd(MapTransform):
         global_coordinates (bool): If True, coordinates are in global coordinates; otherwise, local coordinates.
     """
 
-    def __init__(self, keys, roi_size, allow_missing_keys=False, 
-                 coord_orientation="RAS", global_coordinates=True, jitter = None) -> None:
+    def __init__(
+        self,
+        keys,
+        roi_size,
+        allow_missing_keys=False,
+        coord_orientation="RAS",
+        global_coordinates=True,
+        jitter=None,
+    ) -> None:
         """
         Initialize SeedBasedPatchCropd class.
 
@@ -94,7 +129,9 @@ class SeedBasedPatchCropd(MapTransform):
         self.cropper = SeedBasedPatchCrop(roi_size=roi_size)
         self.jitter = jitter
 
-    def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> Dict[Hashable, NdarrayOrTensor]:
+    def __call__(
+        self, data: Mapping[Hashable, NdarrayOrTensor]
+    ) -> Dict[Hashable, NdarrayOrTensor]:
         """
         Apply transformation to given data.
 
@@ -110,13 +147,12 @@ class SeedBasedPatchCropd(MapTransform):
         assert "coordY" in d.keys(), "coordY not found in data"
         assert "coordZ" in d.keys(), "coordZ not found in data"
 
-
         # Jitter the seed coordinates
         if self.jitter is not None:
             d["coordX"] += np.random.uniform(-self.jitter, self.jitter)
             d["coordY"] += np.random.uniform(-self.jitter, self.jitter)
             d["coordZ"] += np.random.uniform(-self.jitter, self.jitter)
-        
+
         # Convert coordinates to RAS orientation to match image orientation
         if self.coord_orientation == "RAS":
             center = (d["coordX"], d["coordY"], d["coordZ"])
@@ -124,7 +160,9 @@ class SeedBasedPatchCropd(MapTransform):
             center = (-d["coordX"], -d["coordY"], d["coordZ"])
 
         for key in self.key_iterator(d):
-            d[key] = self.cropper(d[key], center=center, global_coordinates=self.global_coordinates)
+            d[key] = self.cropper(
+                d[key], center=center, global_coordinates=self.global_coordinates
+            )
         return d
 
 
@@ -159,7 +197,9 @@ class SeedBasedPatchCrop(Transform):
         super().__init__()
         self.roi_size = roi_size
 
-    def __call__(self, img: NdarrayOrTensor, center: tuple, global_coordinates=False) -> NdarrayOrTensor:
+    def __call__(
+        self, img: NdarrayOrTensor, center: tuple, global_coordinates=False
+    ) -> NdarrayOrTensor:
         """
         Crop a patch from the input image centered around the seed coordinate.
 

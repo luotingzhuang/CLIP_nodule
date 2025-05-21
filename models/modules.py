@@ -1,16 +1,10 @@
-
 import torch
 from torch import nn
 import torch.nn.functional as F
 
 
 class ProjectionHead(nn.Module):
-    def __init__(
-        self,
-        embedding_dim = 512,
-        projection_dim=256,
-        dropout=0.1
-    ):
+    def __init__(self, embedding_dim=512, projection_dim=256, dropout=0.1):
         super().__init__()
         self.projection = nn.Linear(embedding_dim, projection_dim)
         self.gelu = nn.GELU()
@@ -18,11 +12,10 @@ class ProjectionHead(nn.Module):
         self.fc = nn.Linear(projection_dim, projection_dim)
         self.layer_norm = nn.LayerNorm(projection_dim)
 
-        #kaiming initialization
+        # kaiming initialization
         nn.init.kaiming_normal_(self.projection.weight)
         nn.init.kaiming_normal_(self.fc.weight)
 
-    
     def forward(self, x):
         projected = self.projection(x)
         x = self.gelu(projected)
@@ -31,7 +24,6 @@ class ProjectionHead(nn.Module):
         x = x + projected
         x = self.layer_norm(x)
         return x
-    
 
 
 class Attention(nn.Module):
@@ -40,6 +32,7 @@ class Attention(nn.Module):
     Link: https://arxiv.org/abs/1802.04712
     Implementation: https://github.com/AMLab-Amsterdam/AttentionDeepMIL
     """
+
     def __init__(self, feature_size, M=256, L=128, ATTENTION_BRANCHES=1):
         super().__init__()
         self.M = M
@@ -50,12 +43,12 @@ class Attention(nn.Module):
         self.projector = nn.Sequential(
             nn.Linear(feature_size, self.M),
             nn.ReLU(),
-            )
+        )
         self.attention = nn.Sequential(
-            nn.Linear(self.M, self.L), # matrix V
+            nn.Linear(self.M, self.L),  # matrix V
             nn.Tanh(),
-            nn.Linear(self.L, self.ATTENTION_BRANCHES), # matrix W
-            )
+            nn.Linear(self.L, self.ATTENTION_BRANCHES),  # matrix W
+        )
 
     def forward(self, h):
         h = h.view(-1, self.feature_size)
@@ -64,10 +57,10 @@ class Attention(nn.Module):
         a = self.attention(h)  # [b x ATTENTION_BRANCHES]
         a = torch.transpose(a, 1, 0)  # [ATTENTION_BRANCHES x b]
         a = F.softmax(a, dim=1)  # softmax over b
-            
+
         z = torch.mm(a, h)  # [ATTENTION_BRANCHES x M]
         return z
-    
+
 
 class Attention_a(nn.Module):
     """
@@ -75,6 +68,7 @@ class Attention_a(nn.Module):
     Link: https://arxiv.org/abs/1802.04712
     Implementation: https://github.com/AMLab-Amsterdam/AttentionDeepMIL
     """
+
     def __init__(self, feature_size, M=256, L=128, ATTENTION_BRANCHES=1):
         super().__init__()
         self.M = M
@@ -85,12 +79,12 @@ class Attention_a(nn.Module):
         self.projector = nn.Sequential(
             nn.Linear(feature_size, self.M),
             nn.ReLU(),
-            )
+        )
         self.attention = nn.Sequential(
-            nn.Linear(self.M, self.L), # matrix V
+            nn.Linear(self.M, self.L),  # matrix V
             nn.Tanh(),
-            nn.Linear(self.L, self.ATTENTION_BRANCHES), # matrix W
-            )
+            nn.Linear(self.L, self.ATTENTION_BRANCHES),  # matrix W
+        )
 
     def forward(self, h):
         h = h.view(-1, self.feature_size)
@@ -99,7 +93,6 @@ class Attention_a(nn.Module):
         a = self.attention(h)  # [b x ATTENTION_BRANCHES]
         a = torch.transpose(a, 1, 0)  # [ATTENTION_BRANCHES x b]
         a = F.softmax(a, dim=1)  # softmax over b
-            
+
         z = torch.mm(a, h)  # [ATTENTION_BRANCHES x M]
         return z, a
-
