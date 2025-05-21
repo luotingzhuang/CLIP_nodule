@@ -96,43 +96,18 @@ CUDA_VISIBLE_DEVICES=0 python evaluate.py --model_path ./ckpt --dataset_path ./d
 #### Arguments
 | Argument      | Type  | Default | Description |
 |--------------|------|---------|-------------|
-| `--csv_file`  | str  | `./dataset_csv/sample.csv` | Path to the CSV file containing image paths. |
-| `--result_dir` | str  | `./output` | Directory to save the results. |
-| `--exp_dir` | str  | `./model_weights` | Path to the experiment directory containing model weights. |
-| `--n` | int | `100` | Number of masked samples to process. |
-| `--thresh` | float | `0.55` | Threshold for segmentation. |
-| `--save_as` | str | `nifti` | Output format (`nifti` or `numpy`). |
+| `--model_path`  | str  | `./ckpt` | Path to the model checkpoint folder. |
+| `--dataset_path` | str  | `./dataset_csv/sample_csv.csv` | Path to the CSV file pid and nodule id. |
+| `--img_dir` | str  | `./cropped_img` | Path to save the cropped nodules from the preprocessing step. |
+| `--num_workers` | int | `4` | Number of workers for data loading. |
+| `--save_path` | str | `./results_csv` | Path to save the results. |
 
-**Note:** The values `n=100` and `threshold=0.55` are used as the default values in the script. These parameters are also used to produce the results that are shown in the paper. You can adjust these values.
-
-#### Outputs
-
-By default, the segmentation results will be saved in the `./output` folder.  
-
-- If saved as **NIfTI** files (`--save_as nifti`):  
-  - A separate folder will be created for each `pid`.  
-  - Inside each folder, the following files will be saved:  
-    - `mean.nii.gz` – The average segmentation result across n masked samples.  
-    - `std.nii.gz` – The standard deviation of the segmentation.  
-  - Saving as **NIfTI** files may take longer.
-
-- If saved as **NumPy** files (`--save_as numpy`):  
-  - A single `.npz` file will be saved for each `pid` in the output directory.  
-  - The file format will be `{pid}.npz`, containing:  
-    - **First array** – The average segmentation result across n masked samples.  
-    - **Second array** – The standard deviation.  
-  - The segmentation results are saved in RAS orientation.
-
-#### Visualization
-Use `./tutorial/visualization.ipynb` to visualize the the predicted segmentation in jupyter notebook.
-
-
+The output CSV file will be saved at `{save_path}/result.csv`. It includes the pid and the corresponding predicted probabilities. Each `raw_X` column represents the probability output from fold X, while the `ensemble` column contains the average probability across all folds.
 
 ## Acknowledgements
 This project is based on the code from the following repository:
-- [TotalSegmentator](https://github.com/wasserth/TotalSegmentator)
-- [nnUNet](https://github.com/MIC-DKFZ/nnUNet)
-- [dynamic_network_architectures](https://github.com/MIC-DKFZ/dynamic-network-architectures)
+- [CLIP-LoRA](https://github.com/MaxZanella/CLIP-LoRA.git)
+- [foundation-cancer-image-biomarker](https://github.com/AIM-Harvard/foundation-cancer-image-biomarker/tree/master)
 
 ## TODO
 - [ ] Training code
@@ -146,3 +121,6 @@ This project is based on the code from the following repository:
   year={2025}
 }
 ```
+
+## CONTACT
+If you have any questions, please don't hesitate to contact us at luotingzhuang@g.ucla.edu.
