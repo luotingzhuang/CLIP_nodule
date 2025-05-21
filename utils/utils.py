@@ -57,6 +57,11 @@ def init_model(args):
     return model
 
 
+'''
+The follwing function is adapted from foundation cancer image biomarker model code
+https://github.com/AIM-Harvard/foundation-cancer-image-biomarker
+'''
+
 def get_transforms_raw(spatial_size=(50, 50, 50), precropped=False, jitter=None):
     return monai_transforms.Compose(
         [
