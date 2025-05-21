@@ -62,14 +62,9 @@ if __name__ == '__main__':
             all_test_result.append(result)
 
     # Organize results from all folds
-    outputdf = {}
-    for i in range(5):
-        all_test_result_i = all_test_result[i].groupby('pid').max().reset_index()
-        outputdf[f'raw_{i}'] =  all_test_result_i.probs.values
-            
-    outputdf = pd.DataFrame(outputdf)
+    outputdf = pd.DataFrame({'raw_{i}':all_test_result[i].probs.values for i in range(5)})
     outputdf.loc[:,'ensemble'] = outputdf.mean(1).values
-    outputdf.loc[:,'pid'] = all_test_result_i.pid.values
+    outputdf = pd.concat([all_test_result[0][['pid','nodule_id']], outputdf], axis=1)
 
     os.makedirs(eval_args.save_path, exist_ok=True)
     outputdf.to_csv(os.path.join(eval_args.save_path, 'result.csv'), index=False)
