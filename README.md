@@ -54,7 +54,7 @@ Download `ckpt` from the [link](https://drive.google.com/drive/folders/1V1bUAt3H
 ```bash
 # You can also download it using gdown
 pip install gdown
-gdown --folder gdown --folder https://drive.google.com/drive/folders/1V1bUAt3Hl2WNh5eZmQCZHDqQmEd1FT7W?usp=sharing
+gdown --folder --fuzzy --no-cookies --no-check-certificate https://drive.google.com/drive/folders/1V1bUAt3Hl2WNh5eZmQCZHDqQmEd1FT7W?usp=sharing
 ```
 
 ### Data Requirement
@@ -67,11 +67,12 @@ The CSV file should contain six columns:
 
 Refer to `./dataset_csv/sample_csv.csv` as an example. Note that the `malignant` column is optional.
 
-Sample data can also be downloaded from the [link](https://drive.google.com/drive/folders/1V1bUAt3Hl2WNh5eZmQCZHDqQmEd1FT7W?usp=sharing).
+Sample data can also be downloaded from the [link](https://drive.google.com/drive/folders/1MhcOCLpG1OrdGyQw9OiwNQELZKfIBGlr?usp=drive_link).
 ```bash
 # You can also download it using gdown
-gdown --folder https://drive.google.com/drive/folders/1V1bUAt3Hl2WNh5eZmQCZHDqQmEd1FT7W?usp=sharing
+gdown --folder --fuzzy --no-cookies --no-check-certificate https://drive.google.com/drive/folders/1MhcOCLpG1OrdGyQw9OiwNQELZKfIBGlr?usp=drive_link
 ```
+
 ## Predict Nodule Malignancy
 ### Preprocessing
 Before running inference, we need to crop a 100×100×100 mm bounding box around the nodule and save the resulting cropped volume as a `.pt` file for later use.
