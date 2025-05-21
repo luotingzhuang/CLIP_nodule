@@ -26,8 +26,8 @@
 
 **Conclusion:** Our approach accurately classifies lung nodules as benign or malignant, providing explainable outputs, aiding clinicians in comprehending the underlying meaning of model predictions. This approach also prevents the model from learning shortcuts and generalizes across clinical settings. 
 
-## Getting Started
-### 1. Setup Environment
+## :rocket:Getting Started
+### 1. :hammer_and_wrench:Setup Environment
 
 #### Option 1: Docker container
 ```bash
@@ -43,19 +43,19 @@ conda activate clip_nodule
 conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
 ```
 
-### 2. Clone the Repository and Install Packages
+### 2. :package:Clone the Repository and Install Packages
 1. Go to the folder you want to store the code and clone the repo
 ```bash
 git clone https://github.com/luotingzhuang/CLIP_nodule.git
 cd CLIP_nodule
 ```
 
-2. Install all of the required python packages using the following command line.
+2. Install all of the required Python packages using the following command line.
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Download Pretrained Weights
+### 3. :floppy_disk:Download Pretrained Weights
 Download `ckpt` from the [link](https://drive.google.com/drive/folders/1WcOUPaSRRIENU-U1SQpC41WZz2nPP4iH?usp=drive_link) and put it under `./CLIP_nodule`.
 - In each folder, fold_X, it contains a checkpoint file `best_both.pt` for fold X, which will be loaded during evaluation.
 - `args.txt` contains arguments for training.
@@ -65,9 +65,9 @@ Download `ckpt` from the [link](https://drive.google.com/drive/folders/1WcOUPaSR
 pip install gdown
 gdown --folder 'https://drive.google.com/drive/folders/1V1bUAt3Hl2WNh5eZmQCZHDqQmEd1FT7W?usp=sharing'
 ```
-Note: Try add `--fuzzy --no-cookies --no-check-certificate` if there is an error running the gdown command. Some institutional Wi-Fi may block Google services. If it still does not work, try downloading the folder using the link via a browser.
+:warning:Note: Try add `--fuzzy --no-cookies --no-check-certificate` if there is an error running the gdown command. Some institutional Wi-Fi may block Google services. If it still does not work, try downloading the folder using the link via a browser.
 
-### 4. Data Requirement
+### 4. :file_folder:Data Requirement
 To prepare a CSV file, list the path to the **NIfTI** file under the `image_path` column, along with the corresponding `pid` and `nodule_id`. `coordX`, `coordY`, and `coordZ` are the nodule centroid in a global coordinate system. These can be extracted from the nodule mask using the [code](https://github.com/AIM-Harvard/foundation-cancer-image-biomarker/blob/master/tutorials/get_seed_from_mask.ipynb). If the nodule mask is not available, we recommend using a nodule detection algorithm, such as [monai nodule detection](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/monaitoolkit/models/monai_lung_nodule_ct_detection) to obtain the nodule location from CT scans.
 
 The CSV file should contain six columns:  
@@ -83,8 +83,8 @@ Sample data can also be downloaded from the [link](https://drive.google.com/driv
 gdown --folder 'https://drive.google.com/drive/folders/1MhcOCLpG1OrdGyQw9OiwNQELZKfIBGlr?usp=drive_link'
 ```
 
-## Predict Nodule Malignancy
-### 1. Preprocessing
+## :lungs:Predict Nodule Malignancy
+### 1. :broom:Preprocessing
 Before running inference, we need to crop a 100×100×100 mm bounding box around the nodule and save the resulting cropped volume as a `.pt` file for later use.
 
 ```bash
@@ -100,7 +100,7 @@ python crop_nodule.py --dataset_path ./dataset_csv/sample_csv.csv --save_path ./
 
 The nodule crop will be saved with the format `{pid}_{nodule_id}.pt`.
 
-### 2. Run Inference
+### 2. :arrow_forward:Run Inference
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python evaluate.py --model_path ./ckpt --dataset_path ./dataset_csv/sample_csv.csv --img_dir ./cropped_img --num_workers 4 --save_path ./results_csv
