@@ -47,7 +47,6 @@ if __name__ == '__main__':
             weight_path = os.path.join(eval_args.model_path,f'fold_{fold}/best_both.pt')
             print('Loading model from', weight_path)
             pretrained_dict = torch.load(weight_path, 
-                                         weight_only=False, 
                                          map_location=device)['model']
         except:
             print('Model path does not exist. Exiting...')
