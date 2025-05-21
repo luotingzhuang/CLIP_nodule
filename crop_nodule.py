@@ -44,6 +44,10 @@ def loadargs():
 
 if __name__ == "__main__":
     args = loadargs()
+
+    if not os.path.exists(args.save_path):
+        os.makedirs(args.save_path)
+
     dataset = NoduleDataset(args.dataset_path)
     dataloader = monai.data.DataLoader(dataset, 
                         batch_size=1, 
