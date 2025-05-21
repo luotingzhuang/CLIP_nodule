@@ -4,6 +4,7 @@ import pandas as pd
 import os
 import monai
 from tqdm import tqdm
+import argparse
 from monai.data import CSVDataset
 from utils.utils import get_transforms_raw
 
@@ -34,16 +35,16 @@ def loadargs():
     '''
     Load the arguments for evaluation.
     '''
-    parser = argparse.ArgumentParser(description='Evaluate the model')
-    parser.add_argument('--dataset_path', type=str, help='Path to the dataset')
+    parser = argparse.ArgumentParser(description='Crop nodules from the dataset')
+    parser.add_argument('--dataset_path', type=str, default = './dataset_csv/sample_csv.csv', help='Path to the dataset')
     parser.add_argument('--num_workers', type=int, default=4, help='Number of workers for data loading')
-    parser.add_argument('--save_path', type=str, default='../cropped_img', help='Path to save the cropped nodules')
+    parser.add_argument('--save_path', type=str, default='./cropped_img', help='Path to save the cropped nodules')
     return parser.parse_args()
     
 
 if __name__ == "__main__":
     args = loadargs()
-    dataset = NoduleDataset(args.dataset_path, subset = 'DLCS')
+    dataset = NoduleDataset(args.dataset_path)
     dataloader = monai.data.DataLoader(dataset, 
                         batch_size=1, 
                         num_workers=args.num_workers, 
