@@ -80,6 +80,8 @@ Before running inference, we need to crop a 100×100×100 mm bounding box around
 ```bash
 python crop_nodule.py --dataset_path ./dataset_csv/sample_csv.csv --save_path ./cropped_img
 ```
+
+#### Arguments
 | Argument      | Type  | Default | Description |
 |--------------|------|---------|-------------|
 | `--dataset_path`  | str  | `./dataset_csv/sample_csv.csv` | Path to the CSV file containing image paths and nodule centroid. |
