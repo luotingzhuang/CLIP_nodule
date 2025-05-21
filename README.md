@@ -56,7 +56,7 @@ pip install -r requirements.txt
 ```
 
 ### 3. Download Pretrained Weights
-Download `ckpt` from the [link](https://drive.google.com/drive/folders/1V1bUAt3Hl2WNh5eZmQCZHDqQmEd1FT7W?usp=sharing) and put it under `./CLIP_nodule`.
+Download `ckpt` from the [link](https://drive.google.com/drive/folders/1WcOUPaSRRIENU-U1SQpC41WZz2nPP4iH?usp=drive_link) and put it under `./CLIP_nodule`.
 - In each folder, fold_X, it contains a checkpoint file `best_both.pt` for fold X, which will be loaded during evaluation.
 - `args.txt` contains arguments for training.
 
@@ -77,7 +77,7 @@ The CSV file should contain six columns:
 
 Refer to `./dataset_csv/sample_csv.csv` as an example. Note that the `malignant` column is optional.
 
-Sample data can also be downloaded from the [link](https://drive.google.com/drive/folders/1MhcOCLpG1OrdGyQw9OiwNQELZKfIBGlr?usp=drive_link).
+Sample data can also be downloaded from the [link](https://drive.google.com/drive/folders/1WcOUPaSRRIENU-U1SQpC41WZz2nPP4iH?usp=drive_link).
 ```bash
 # You can also download it using gdown
 gdown --folder 'https://drive.google.com/drive/folders/1MhcOCLpG1OrdGyQw9OiwNQELZKfIBGlr?usp=drive_link'
