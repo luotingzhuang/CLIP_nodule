@@ -12,7 +12,7 @@
 
 
 <p align="center">
-    <img src="figures/abstract.jpg"/> <br />
+    <img src="figures/abstract.jpg" width="80%"/> <br />
     <em> 
     Figure 1. An overview of the proposed framework. 
     </em>
@@ -20,7 +20,7 @@
 
 **Objective:** A number of machine learning models have utilized semantic features, deep features, or both to assess lung nodule malignancy. However, their reliance on manual annotation during inference, limited interpretability, and sensitivity to imaging variations hinder their application in real-world clinical settings. Thus, this research aims to integrate semantic features derived from radiologists’ assessments of nodules, allowing the model to learn clinically relevant, robust, and explainable features for predicting lung cancer. 
 
-**Methods:** We obtained 938 low-dose CT scans from the National Lung Screening Trial with 1,246 nodules and semantic features. Additionally, the Lung Image Database Consortium dataset contains 1,018 CT scans, with 2,625 lesions annotated for nodule characteristics. Three external datasets were obtained from UCLA Health, the LUNGx Challenge, and the Duke Lung Cancer Screening. For imaging input, we obtained 2D nodule slices from nine directions from $50\times50\times50$mm nodule crop. We converted structured semantic features into sentences using Gemini. We finetuned a pretrained Contrastive Language-Image Pretraining model with a parameter-efficient fine-tuning approach to align imaging and semantic features and predict the one-year lung cancer diagnosis.  
+**Methods:** We obtained 938 low-dose CT scans from the National Lung Screening Trial with 1,246 nodules and semantic features. Additionally, the Lung Image Database Consortium dataset contains 1,018 CT scans, with 2,625 lesions annotated for nodule characteristics. Three external datasets were obtained from UCLA Health, the LUNGx Challenge, and the Duke Lung Cancer Screening. For imaging input, we obtained 2D nodule slices from nine directions from 50×50×50mm nodule crop. We converted structured semantic features into sentences using Gemini. We finetuned a pretrained Contrastive Language-Image Pretraining model with a parameter-efficient fine-tuning approach to align imaging and semantic features and predict the one-year lung cancer diagnosis.  
 
 **Results:** We evaluated the performance of the one-year diagnosis of lung cancer with AUROC and AUPRC and compared it to three state-of-the-art models. Our model demonstrated an AUROC of 0.90 and AUPRC of 0.78, outperforming baseline state-of-the-art models on external datasets. Using CLIP, we also obtained predictions on semantic features, such as nodule margin (AUROC: 0.81), nodule consistency (0.81), and pleural attachment (0.84), that can be used to explain model predictions.  
 
@@ -37,8 +37,8 @@ docker run --shm-size=8g --gpus all -it --rm -v .:/workspace -v /etc/localtime:/
 ### Clone the Repository and Install Packages
 1. Go to the folder you want to store the code and clone the repo
 ```bash
-git clone --depth 1 https://github.com/luotingzhuang/maskedSeg.git
-cd maskedSeg
+git clone https://github.com/luotingzhuang/CLIP_nodule.git
+cd CLIP_nodule
 ```
 
 2. Install all of the required python packages using the following command line.
@@ -47,23 +47,20 @@ pip install -r requirements.txt
 ```
 
 ### Download Pretrained Weights
-Download `model_weights` from the [link](https://drive.google.com/drive/folders/1elGnhviQBP8y7oPL2TpTn5jcBLE5HDs9?usp=drive_link) and put it under `./maskedSeg`.
-- `checkpoint_final.pth` is the checkpoint file containing information about [totalsegmentator](https://github.com/wasserth/TotalSegmentator) architecture and its model weights.
-- `es_checkpoint.pth.tar` is the weights of the finetuned model.
-- `args.json` contains arguments for training.
+Download `ckpt` from the [link](https://drive.google.com/drive/folders/1WcOUPaSRRIENU-U1SQpC41WZz2nPP4iH?usp=sharing) and put it under `./CLIP_nodule`.
+- In each folder, fold_X, it contains a checkpoint file `best_both.pt` for fold X, which will be loaded during evaluation.
+- `args.text` contains arguments for training.
 
 ```bash
 # You can also download it using gdown
 pip install gdown
-gdown --folder https://drive.google.com/drive/folders/1MiI7Vly9VtvxdTdDJ2PWIS--cgkVJjMv?usp=drive_link
+gdown --folder gdown --folder https://drive.google.com/drive/folders/1V1bUAt3Hl2WNh5eZmQCZHDqQmEd1FT7W?usp=sharing
 ```
 
 ### Data Requirement
-The model accepts a **NIfTI** file as input and outputs either a **NIfTI** file or **NumPy** arrays.
-
 To prepare a CSV file, list the path to the **NIfTI** file under the `image_path` column, along with the corresponding `pid`. 
 
-The CSV file should contain two columns:  
+The CSV file should contain six columns:  
 | `pid` | `image_path` |  
 |------|------------|  
 | 001  | `./data/image1.nii.gz` |  
