@@ -47,7 +47,7 @@ pip install -r requirements.txt
 ```
 
 ### Download Pretrained Weights
-Download `ckpt` from the [link](https://drive.google.com/drive/folders/1WcOUPaSRRIENU-U1SQpC41WZz2nPP4iH?usp=sharing) and put it under `./CLIP_nodule`.
+Download `ckpt` from the [link](https://drive.google.com/drive/folders/1V1bUAt3Hl2WNh5eZmQCZHDqQmEd1FT7W?usp=sharing) and put it under `./CLIP_nodule`.
 - In each folder, fold_X, it contains a checkpoint file `best_both.pt` for fold X, which will be loaded during evaluation.
 - `args.text` contains arguments for training.
 
@@ -58,22 +58,35 @@ gdown --folder gdown --folder https://drive.google.com/drive/folders/1V1bUAt3Hl2
 ```
 
 ### Data Requirement
-To prepare a CSV file, list the path to the **NIfTI** file under the `image_path` column, along with the corresponding `pid`. 
+To prepare a CSV file, list the path to the **NIfTI** file under the `image_path` column, along with the corresponding `pid` and `nodule_id`. `coordX`, `coordY`, and `coordZ` are the nodule centroid in a global coordinate system. These can be extracted from the nodule mask using the [code](https://github.com/AIM-Harvard/foundation-cancer-image-biomarker/blob/master/tutorials/get_seed_from_mask.ipynb). If the nodule mask is not available, we recommend using a nodule detection algorithm, such as [monai nodule detection](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/monaitoolkit/models/monai_lung_nodule_ct_detection) to obtain the nodule location from CT scans.
 
 The CSV file should contain six columns:  
-| `pid` | `image_path` |  
-|------|------------|  
-| 001  | `./data/image1.nii.gz` |  
-| 002  | `./data/image2.nii.gz` |  
+| pid    | nodule_id | image_path                                      | coordX     | coordY     | coordZ      | 
+|--------|-----------|--------------------------------------------------|------------|------------|-------------|
+| 121389 | 0         | ./sample_data/121389/2001-01-02/image.nii.gz     | -38.038567 | -73.942905 | -111.030769 |
 
-Refer to `./dataset_csv/sample.csv` or `./dataset_csv/sample_paper.csv` as an example. `./dataset_csv/sample_paper.csv` contains three examples shown in Figure 2 in the manuscript.
+Refer to `./dataset_csv/sample_csv.csv` as an example. Note that the `malignant` column is optional.
 
-Sample data can also be downloaded from the [link](https://drive.google.com/drive/folders/1elGnhviQBP8y7oPL2TpTn5jcBLE5HDs9?usp=drive_link).
+Sample data can also be downloaded from the [link](https://drive.google.com/drive/folders/1V1bUAt3Hl2WNh5eZmQCZHDqQmEd1FT7W?usp=sharing).
 ```bash
 # You can also download it using gdown
-gdown --folder https://drive.google.com/drive/folders/1tQ_eD6i30C-qY9dfX4X20zuSyN7eB0lT?usp=drive_link
+gdown --folder https://drive.google.com/drive/folders/1V1bUAt3Hl2WNh5eZmQCZHDqQmEd1FT7W?usp=sharing
 ```
-## Lung Segmentation
+## Predict Nodule Malignancy
+### Preprocessing
+Before running inference, we need to crop a 100×100×100 mm bounding box around the nodule and save the resulting cropped volume as a `.pt` file for later use.
+
+```bash
+python crop_nodule.py --dataset_path ./dataset_csv/sample_csv.csv --save_path ./cropped_img
+```
+| Argument      | Type  | Default | Description |
+|--------------|------|---------|-------------|
+| `--dataset_path`  | str  | `./dataset_csv/sample_csv.csv` | Path to the CSV file containing image paths and nodule centroid. |
+| `--num_workers` | int  | 4 | Number of workers for data loading. |
+| `--exp_dir` | str  | `./cropped_img` | Path to save the cropped nodules. |
+
+The nodule crop will be saved with the format `{pid}_{nodule_id}.pt`.
+
 ### Run Inference
 
 ```bash
