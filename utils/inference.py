@@ -77,7 +77,7 @@ def eval_epoch(model, valid_loader):
 
     tqdm_object = tqdm(valid_loader, total=len(valid_loader))
     for batch in tqdm_object:
-        img_embeds = model.encode_image(batch[1].to(device))
+        img_embeds = model.encode_image(batch[0].to(device))
         img_embeds = img_embeds / img_embeds.norm(dim=-1, keepdim=True)
         logits_img = model.classifier_image(img_embeds)
         logits_img_all.append(logits_img.cpu().detach())

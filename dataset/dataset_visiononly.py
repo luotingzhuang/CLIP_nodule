@@ -27,8 +27,6 @@ class VisionDatasetText(Dataset):
     def __getitem__(self, idx):
         pid = self.data_subset.pid[idx]
         nodule_id = self.data_subset.nodule_id[idx]
-        label = self.data_subset.diagnosis_patient[idx]
-
 
         img_path = f'{self.img_dir}/{pid}_{nodule_id}.pt'
         img = torch.load(img_path).squeeze().numpy()
@@ -38,13 +36,10 @@ class VisionDatasetText(Dataset):
         #normalize
         img = (img + 1000) / 1500
 
-        #random crop 
-        img_3d = self.random_crop3d(img, 50, jitter = 0)
-
         nine_slices = self.slices2d_9(img)
         img_2d = torch.stack([self.normalize(torch.from_numpy(s)) for s in nine_slices], dim=0)
 
-        return torch.from_numpy(img_3d).unsqueeze(0), img_2d, label, pid, nodule_id
+        return img_2d
     
     
     def __len__(self):
