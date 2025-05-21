@@ -91,7 +91,7 @@ The nodule crop will be saved with the format `{pid}_{nodule_id}.pt`.
 ### Run Inference
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python evaluate.py --model_path ./ckpt --dataset_path ./dataset_csv/sample_csv.csv --num_workers 4 --save_path ./results_csv
+CUDA_VISIBLE_DEVICES=0 python evaluate.py --model_path ./ckpt --dataset_path ./dataset_csv/sample_csv.csv --img_dir ./cropped_img --num_workers 4 --save_path ./results_csv
 ```
 #### Arguments
 | Argument      | Type  | Default | Description |

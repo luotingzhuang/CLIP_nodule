@@ -16,6 +16,7 @@ def load_eval_args():
     parser = argparse.ArgumentParser(description='Evaluate the model')
     parser.add_argument('--model_path', type=str, default='./ckpt', help='Path to the model')
     parser.add_argument('--dataset_path', type=str, default='./dataset_csv/sample_csv.csv', help='Path to the dataset')
+    parser.add_argument('--img_dir', type=str, default='./cropped_img', help='Path to the cropped images')
     parser.add_argument('--num_workers', type=int, default=4, help='Number of workers for data loading')
     parser.add_argument('--save_path', type=str, default='./results_csv', help='Path to save the results')
     return parser.parse_args()
@@ -25,6 +26,7 @@ if __name__ == '__main__':
     eval_args = load_eval_args()
     args = load_args(eval_args.model_path)
     args.dataset_path =  eval_args.dataset_path
+    args.img_dir = eval_args.img_dir
 
     # DataLoaders
     test_dataset = VisionDatasetText(args)
