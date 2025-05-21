@@ -36,10 +36,13 @@ class VisionDatasetText(Dataset):
         #normalize
         img = (img + 1000) / 1500
 
+        #random crop 
+        img_3d = self.random_crop3d(img, 50, jitter = 0)
+
         nine_slices = self.slices2d_9(img)
         img_2d = torch.stack([self.normalize(torch.from_numpy(s)) for s in nine_slices], dim=0)
 
-        return img_2d
+        return img_2d, pid, nodule_id
     
     
     def __len__(self):
