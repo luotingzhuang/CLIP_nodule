@@ -42,7 +42,10 @@ class CLIPModel(nn.Module):
 
         self.classifier_image = nn.Linear(256, 2)
         self.classifier_text = nn.Linear(256, 2)
-        
+
+        self.pred_criterion_train = nn.CrossEntropyLoss()
+        self.pred_criterion_val = nn.CrossEntropyLoss()
+
     def encode_text(self, input_ids=None):
         '''
         Encodes the text input using the CLIP model.
