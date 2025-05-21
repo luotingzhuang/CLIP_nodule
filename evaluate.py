@@ -56,7 +56,7 @@ if __name__ == '__main__':
         model.eval()
         with torch.no_grad():
             probs = eval_epoch(model, test_loader)
-            result = test_dataset.data_subset[['pid']].copy()
+            result = test_dataset.data_subset[['pid','nodule_id']].copy()
             result.loc[:,'probs'] = probs[:,1]
             result.loc[:,'fold'] = fold
             all_test_result.append(result)
