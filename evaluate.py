@@ -8,6 +8,7 @@ from utils.utils import init_model
 from dataset.dataset_visiononly import VisionDatasetText
 from utils.inference import load_args, eval_epoch
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def load_eval_args():
     '''
@@ -45,7 +46,9 @@ if __name__ == '__main__':
         try:
             weight_path = os.path.join(eval_args.model_path,f'fold_{fold}/best_both.pt')
             print('Loading model from', weight_path)
-            pretrained_dict = torch.load(weight_path, weight_only=False)['model']
+            pretrained_dict = torch.load(weight_path, 
+                                         weight_only=False, 
+                                         map_location=device)['model']
         except:
             print('Model path does not exist. Exiting...')
             exit()
