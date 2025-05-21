@@ -2,24 +2,11 @@
 import numpy as np
 import torch
 import pandas as pd
-from fmcib.preprocessing.seed_based_crop import SeedBasedPatchCropd
-#from monai.data import CSVDataset
 from torch.utils.data import Dataset
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import StandardScaler
-from monai.transforms import SpatialResample
-from transformers import AutoTokenizer
-import random
-import os
-import time
-import nlpaug.flow as naf
-import nlpaug.augmenter.word as naw
-from collections import defaultdict
-import clip
+
 from scipy.ndimage import zoom
 from scipy.ndimage import rotate
 from torchvision import transforms
-from sklearn.preprocessing import LabelEncoder
 
 class VisionDatasetText(Dataset):
     def __init__(self, args):
