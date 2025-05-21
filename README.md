@@ -27,14 +27,23 @@
 **Conclusion:** Our approach accurately classifies lung nodules as benign or malignant, providing explainable outputs, aiding clinicians in comprehending the underlying meaning of model predictions. This approach also prevents the model from learning shortcuts and generalizes across clinical settings. 
 
 ## Getting Started
-### Create a Docker Container
+### 1. Setup Environment
+
+#### Option 1: Docker container
 ```bash
 docker run --shm-size=8g --gpus all -it --rm -v .:/workspace -v /etc/localtime:/etc/localtime:ro nvcr.io/nvidia/pytorch:24.03-py3
 ```
 - If you use `-v .:/workspace` as shown above, Docker will map the **current directory** to `/workspace` inside the container.
 - To map a different folder to a specific path in docker container, you can replace `-v .:/workspace` with `-v /path/to/local/folder:/path/in/container`.
 
-### Clone the Repository and Install Packages
+#### Option 2: Conda environment
+```bash
+conda create -n clip_nodule python=3.10 -y 
+conda activate clip_nodule 
+conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+```
+
+### 2. Clone the Repository and Install Packages
 1. Go to the folder you want to store the code and clone the repo
 ```bash
 git clone https://github.com/luotingzhuang/CLIP_nodule.git
@@ -46,7 +55,7 @@ cd CLIP_nodule
 pip install -r requirements.txt
 ```
 
-### Download Pretrained Weights
+### 3. Download Pretrained Weights
 Download `ckpt` from the [link](https://drive.google.com/drive/folders/1V1bUAt3Hl2WNh5eZmQCZHDqQmEd1FT7W?usp=sharing) and put it under `./CLIP_nodule`.
 - In each folder, fold_X, it contains a checkpoint file `best_both.pt` for fold X, which will be loaded during evaluation.
 - `args.txt` contains arguments for training.
@@ -57,7 +66,7 @@ pip install gdown
 gdown --folder --fuzzy --no-cookies --no-check-certificate https://drive.google.com/drive/folders/1V1bUAt3Hl2WNh5eZmQCZHDqQmEd1FT7W?usp=sharing
 ```
 
-### Data Requirement
+### 4. Data Requirement
 To prepare a CSV file, list the path to the **NIfTI** file under the `image_path` column, along with the corresponding `pid` and `nodule_id`. `coordX`, `coordY`, and `coordZ` are the nodule centroid in a global coordinate system. These can be extracted from the nodule mask using the [code](https://github.com/AIM-Harvard/foundation-cancer-image-biomarker/blob/master/tutorials/get_seed_from_mask.ipynb). If the nodule mask is not available, we recommend using a nodule detection algorithm, such as [monai nodule detection](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/monaitoolkit/models/monai_lung_nodule_ct_detection) to obtain the nodule location from CT scans.
 
 The CSV file should contain six columns:  
@@ -74,7 +83,7 @@ gdown --folder --fuzzy --no-cookies --no-check-certificate https://drive.google.
 ```
 
 ## Predict Nodule Malignancy
-### Preprocessing
+### 1. Preprocessing
 Before running inference, we need to crop a 100×100×100 mm bounding box around the nodule and save the resulting cropped volume as a `.pt` file for later use.
 
 ```bash
@@ -90,7 +99,7 @@ python crop_nodule.py --dataset_path ./dataset_csv/sample_csv.csv --save_path ./
 
 The nodule crop will be saved with the format `{pid}_{nodule_id}.pt`.
 
-### Run Inference
+### 2. Run Inference
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python evaluate.py --model_path ./ckpt --dataset_path ./dataset_csv/sample_csv.csv --img_dir ./cropped_img --num_workers 4 --save_path ./results_csv
