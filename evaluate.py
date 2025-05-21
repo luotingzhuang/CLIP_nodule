@@ -4,7 +4,6 @@ import os
 import monai
 import argparse
 
-
 from utils.utils import init_model
 from dataset.dataset_visiononly import VisionDatasetText
 from utils.inference import load_args, eval_epoch
@@ -16,8 +15,7 @@ def load_eval_args():
     '''
     parser = argparse.ArgumentParser(description='Evaluate the model')
     parser.add_argument('--model_path', type=str, default='./ckpt', help='Path to the model')
-    #'./results_newfreeze/modelopenai_ViT-B_32_tuninglora_bz16_j5_lr0.0001_wd0.1_epochs100_ga1_patience20_weightedsemantic_tau0.03_clipweight1.0_imgweight1.0_textweight1.0_lora_all_both_r2_alpha1_dropout0.25_paramsqkv'
-    parser.add_argument('--dataset_path', type=str, default='./dataset_csv/datasets_09262024.csv', help='Path to the dataset')
+    parser.add_argument('--dataset_path', type=str, default='./dataset_csv/sample_csv.csv', help='Path to the dataset')
     parser.add_argument('--num_workers', type=int, default=4, help='Number of workers for data loading')
     parser.add_argument('--save_path', type=str, default='./results_csv', help='Path to save the results')
     return parser.parse_args()
@@ -67,4 +65,6 @@ if __name__ == '__main__':
     outputdf = pd.DataFrame(outputdf)
     outputdf['ensemble'] = outputdf.mean(1)
     outputdf['pid'] = all_test_result_i['pid']
-    outputdf.to_csv(os.path.join(eval_args.save_path, 'ensemble.csv'), index=False)
+
+    os.makedirs(eval_args.save_path, exist_ok=True)
+    outputdf.to_csv(os.path.join(eval_args.save_path, 'result.csv'), index=False)

@@ -24,7 +24,6 @@ from sklearn.preprocessing import LabelEncoder
 class VisionDatasetText(Dataset):
     def __init__(self, args):
         super().__init__()
-        self.resampler = SpatialResample( mode='bilinear')
         self.dataset_path = args.dataset_path
         self.img_dir = args.img_dir
         self.split_dir = args.split_dir
