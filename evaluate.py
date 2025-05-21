@@ -41,6 +41,7 @@ if __name__ == '__main__':
 
     #Loop through folds
     for fold in range(5):
+        print(f'Loading fold {fold}...')
         try:
             weight_path = os.path.join(eval_args.model_path,f'fold_{fold}/best_both.pt')
             pretrained_dict = torch.load(weight_path)['model']
@@ -57,7 +58,6 @@ if __name__ == '__main__':
             result.loc[:,'fold'] = fold
             all_test_result.append(result)
 
-
     # Organize results from all folds
     outputdf = {}
     for i in range(5):
@@ -70,3 +70,4 @@ if __name__ == '__main__':
 
     os.makedirs(eval_args.save_path, exist_ok=True)
     outputdf.to_csv(os.path.join(eval_args.save_path, 'result.csv'), index=False)
+    print('Results saved to', os.path.join(eval_args.save_path, 'result.csv'))
