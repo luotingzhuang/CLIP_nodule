@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import clip
 from models.modules import ProjectionHead, Attention
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class CLIPModel(nn.Module):
     def __init__(
@@ -21,7 +22,7 @@ class CLIPModel(nn.Module):
 
         visual_encoder_name = args.model.split('_')[1]
         print('Loading openai clip...')
-        model, _ = clip.load(visual_encoder_name, device = 'cuda', jit=False)
+        model, _ = clip.load(visual_encoder_name, device = device, jit=False)
         self.positional_embedding = model.positional_embedding
 
         model = model.float()
