@@ -62,7 +62,7 @@ if __name__ == '__main__':
             all_test_result.append(result)
 
     # Organize results from all folds
-    outputdf = pd.DataFrame({'raw_{i}':all_test_result[i].probs.values for i in range(5)})
+    outputdf = pd.DataFrame({f'raw_{i}':all_test_result[i].probs.values for i in range(5)})
     outputdf.loc[:,'ensemble'] = outputdf.mean(1).values
     outputdf = pd.concat([all_test_result[0][['pid','nodule_id']], outputdf], axis=1)
 
