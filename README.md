@@ -49,7 +49,7 @@ pip install -r requirements.txt
 ### Download Pretrained Weights
 Download `ckpt` from the [link](https://drive.google.com/drive/folders/1V1bUAt3Hl2WNh5eZmQCZHDqQmEd1FT7W?usp=sharing) and put it under `./CLIP_nodule`.
 - In each folder, fold_X, it contains a checkpoint file `best_both.pt` for fold X, which will be loaded during evaluation.
-- `args.text` contains arguments for training.
+- `args.txt` contains arguments for training.
 
 ```bash
 # You can also download it using gdown
