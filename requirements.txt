@@ -1,1 +1,8 @@
+#medical imaging
+SimpleITK==2.4.0
+nibabel==5.3.2
 monai==1.4.0
+
+#openai clip
+pip install ftfy regex tqdm
+pip install git+https://github.com/openai/CLIP.git
