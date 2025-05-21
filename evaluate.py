@@ -46,7 +46,7 @@ if __name__ == '__main__':
             print('Model path does not exist. Exiting...')
             exit()
         
-        model.load_state_dict(pretrained_dict)
+        model.load_state_dict(pretrained_dict, strict=False)
         model.eval()
         with torch.no_grad():
             probs = eval_epoch(model, test_loader)
