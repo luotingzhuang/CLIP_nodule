@@ -117,6 +117,7 @@ The output CSV file will be saved at `{save_path}/result.csv`. It includes the p
 
 ## Acknowledgements
 This project is based on the code from the following repository:
+- [CLIP](https://github.com/openai/CLIP)
 - [CLIP-LoRA](https://github.com/MaxZanella/CLIP-LoRA.git)
 - [foundation-cancer-image-biomarker](https://github.com/AIM-Harvard/foundation-cancer-image-biomarker/tree/master)
 
