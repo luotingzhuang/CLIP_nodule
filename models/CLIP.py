@@ -3,6 +3,7 @@ from torch import nn
 import torch.nn.functional as F
 import clip
 from models.modules import ProjectionHead, Attention
+from utils.loss import LabelSmoothingCrossEntropy
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -44,9 +45,15 @@ class CLIPModel(nn.Module):
         self.classifier_image = nn.Linear(256, 2)
         self.classifier_text = nn.Linear(256, 2)
 
-        self.pred_criterion_train = nn.CrossEntropyLoss()
-        self.pred_criterion_val = nn.CrossEntropyLoss()
+        self.clip_criterion = LabelSmoothingCrossEntropy()
 
+        if args.weighted == 'diagnosis':
+            self.pred_criterion_train = nn.CrossEntropyLoss()
+        elif args.weighted == 'semantic':
+            self.pred_criterion_train = nn.CrossEntropyLoss(weight=torch.from_numpy(self.class_weights).float())
+        self.pred_criterion_val = nn.CrossEntropyLoss(weight=torch.from_numpy(self.class_weights).float())
+
+        
     def encode_text(self, input_ids=None):
         """
         Encodes the text input using the CLIP model.
@@ -176,17 +183,3 @@ class CLIPModel(nn.Module):
         total = gt.size(0)
         accuracy = correct / total
         return accuracy
-
-
-class LabelSmoothingCrossEntropy(nn.Module):
-    def __init__(self):
-        super(LabelSmoothingCrossEntropy, self).__init__()
-
-    def forward(self, x, target, smoothing=0.1):
-        confidence = 1.0 - smoothing
-        logprobs = F.log_softmax(x, dim=-1)
-        nll_loss = -logprobs.gather(dim=-1, index=target.unsqueeze(1))
-        nll_loss = nll_loss.squeeze(1)
-        smooth_loss = -logprobs.mean(dim=-1)
-        loss = confidence * nll_loss + smoothing * smooth_loss
-        return loss.mean()

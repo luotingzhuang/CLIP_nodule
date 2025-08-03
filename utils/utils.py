@@ -1,14 +1,80 @@
 import torch
 import numpy as np
-from typing import Any, Dict, Hashable, Mapping, Tuple
 from models.CLIP import CLIPModel
 from loralib.utils import apply_lora, mark_only_lora_as_trainable
-from monai import transforms as monai_transforms
-from monai.config.type_definitions import NdarrayOrTensor
-import torchvision
-from monai.transforms import MapTransform, Transform
+from dataset.dataset_text import CLIPDatasetText, CLIPDatasetTextCollator
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+class AvgMeter:
+    def __init__(self, name="Metric"):
+        self.name = name
+        self.reset()
+
+    def reset(self):
+        self.avg, self.sum, self.count = [0] * 3
+
+    def update(self, val, count=1):
+        self.count += count
+        self.sum += val * count
+        self.avg = self.sum / self.count
+
+    def __repr__(self):
+        text = f"{self.name}: {self.avg:.4f}"
+        return text
+
+
+def get_lr(optimizer):
+    for param_group in optimizer.param_groups:
+        return param_group["lr"]
+
+
+
+
+class EarlyStopping:
+    def __init__(
+        self, warmup: int = 0, patience: int = 20, verbose: bool = True
+    ) -> None:
+        self.patience = patience
+        self.verbose = verbose
+        self.counter = 0
+        self.lowest_val_loss = np.Inf
+        self.early_stop = False
+        self.warmup = warmup
+
+    def __call__(
+        self,
+        epoch: int,
+        val_loss: float,
+        model: torch.nn.Module,
+        ckpt_path: str = "checkpoint.pt",
+    ) -> None:
+        if epoch < self.warmup:
+            pass
+        elif np.isinf(self.lowest_val_loss):
+            self.save_checkpoint(val_loss, model, ckpt_path)
+            self.lowest_val_loss = val_loss
+        elif val_loss > self.lowest_val_loss:
+            self.counter += 1
+            print(f"EarlyStopping counter: {self.counter} out of {self.patience}")
+            if self.counter >= self.patience:
+                self.early_stop = True
+        else:
+            self.save_checkpoint(val_loss, model, ckpt_path)
+            self.lowest_val_loss = val_loss
+            self.counter = 0
+
+        return self.early_stop
+
+    def save_checkpoint(
+        self, val_loss: float, model: torch.nn.Module, ckpt_path: str
+    ) -> None:
+        if self.verbose:
+            print(
+                f"Validation loss decreased from {self.lowest_val_loss:.6f} to {val_loss:.6f}. Model saved."
+            )
+        torch.save({"model": model.state_dict()}, ckpt_path)
 
 
 def init_model(args):
@@ -57,185 +123,34 @@ def init_model(args):
     return model
 
 
-'''
-The follwing function is adapted from foundation cancer image biomarker model code
-https://github.com/AIM-Harvard/foundation-cancer-image-biomarker
-'''
+def build_loaders(args, fold, mode):
 
-def get_transforms_raw(spatial_size=(50, 50, 50), precropped=False, jitter=None):
-    return monai_transforms.Compose(
-        [
-            monai_transforms.LoadImaged(
-                keys=["image_path"], image_only=True, reader="ITKReader"
-            ),
-            monai_transforms.EnsureChannelFirstd(keys=["image_path"]),
-            monai_transforms.Spacingd(
-                keys=["image_path"],
-                pixdim=1,
-                padding_mode="zeros",
-                mode="linear",
-                align_corners=True,
-                diagonal=True,
-            ),
-            monai_transforms.Orientationd(keys=["image_path"], axcodes="LPS"),
-            SeedBasedPatchCropd(
-                keys=["image_path"],
-                roi_size=spatial_size[::-1],
-                coord_orientation="LPS",
-                global_coordinates=True,
-                jitter=jitter,
-            ),
-            monai_transforms.SelectItemsd(keys=["image_path"]),
-            monai_transforms.Transposed(keys=["image_path"], indices=(0, 3, 2, 1)),
-            monai_transforms.SpatialPadd(
-                keys=["image_path"], spatial_size=spatial_size
-            ),
-            torchvision.transforms.Lambda(lambda x: x["image_path"].as_tensor()),
-        ]
-    )
+    dataset = CLIPDatasetText(args, fold, mode = mode,seed = 0)
+    train_collate_fn = CLIPDatasetTextCollator(args, mode = mode)
+    if mode == "train":
+        shuffle = True
+    else:
+        shuffle = False
 
+    if args.weighted == 'diagnosis':
+        sample_weights = dataset.sample_weights
+    elif args.weighted == 'semantic':
+        sample_weights = dataset.semantic_weights
+    else:
+        raise ValueError("Invalid weighted argument")
 
-class SeedBasedPatchCropd(MapTransform):
-    """
-    A class representing a seed-based patch crop transformation.
+    if mode == "train":
+        sampler = WeightedRandomSampler(weights = sample_weights, num_samples = len(dataset), replacement = True)
+        args.class_weights = dataset.class_weights
+        print(f"Class weights: {args.class_weights}" )
+    else:
+        sampler = RandomSampler(dataset)
 
-    Inherits from MapTransform.
+    dataloader = DataLoader(dataset, 
+                                       collate_fn = train_collate_fn,
+                                        batch_size=args.batch_size, 
+                                        num_workers=args.num_workers, 
+                                         sampler = sampler,
+                                        pin_memory=False)
+    return dataloader
 
-    Attributes:
-        keys (list): List of keys for images in the input data dictionary.
-        roi_size (tuple): Tuple indicating the size of the region of interest (ROI).
-        allow_missing_keys (bool): If True, do not raise an error if some keys in the input data dictionary are missing.
-        coord_orientation (str): Coordinate system (RAS or LPS) of input coordinates.
-        global_coordinates (bool): If True, coordinates are in global coordinates; otherwise, local coordinates.
-    """
-
-    def __init__(
-        self,
-        keys,
-        roi_size,
-        allow_missing_keys=False,
-        coord_orientation="RAS",
-        global_coordinates=True,
-        jitter=None,
-    ) -> None:
-        """
-        Initialize SeedBasedPatchCropd class.
-
-        Args:
-            keys (List): List of keys for images in the input data dictionary.
-            roi_size (Tuple): Tuple indicating the size of the region of interest (ROI).
-            allow_missing_keys (bool): If True, do not raise an error if some keys in the input data dictionary are missing.
-            coord_orientation (str): Coordinate system (RAS or LPS) of input coordinates.
-            global_coordinates (bool): If True, coordinates are in global coordinates; otherwise, local coordinates.
-        """
-        super().__init__(keys=keys, allow_missing_keys=allow_missing_keys)
-        self.coord_orientation = coord_orientation
-        self.global_coordinates = global_coordinates
-        self.cropper = SeedBasedPatchCrop(roi_size=roi_size)
-        self.jitter = jitter
-
-    def __call__(
-        self, data: Mapping[Hashable, NdarrayOrTensor]
-    ) -> Dict[Hashable, NdarrayOrTensor]:
-        """
-        Apply transformation to given data.
-
-        Args:
-            data (dict): Dictionary with image keys and required center coordinates.
-
-        Returns:
-            dict: Dictionary with cropped patches for each key in the input data dictionary.
-        """
-        d = dict(data)
-
-        assert "coordX" in d.keys(), "coordX not found in data"
-        assert "coordY" in d.keys(), "coordY not found in data"
-        assert "coordZ" in d.keys(), "coordZ not found in data"
-
-        # Jitter the seed coordinates
-        if self.jitter is not None:
-            d["coordX"] += np.random.uniform(-self.jitter, self.jitter)
-            d["coordY"] += np.random.uniform(-self.jitter, self.jitter)
-            d["coordZ"] += np.random.uniform(-self.jitter, self.jitter)
-
-        # Convert coordinates to RAS orientation to match image orientation
-        if self.coord_orientation == "RAS":
-            center = (d["coordX"], d["coordY"], d["coordZ"])
-        elif self.coord_orientation == "LPS":
-            center = (-d["coordX"], -d["coordY"], d["coordZ"])
-
-        for key in self.key_iterator(d):
-            d[key] = self.cropper(
-                d[key], center=center, global_coordinates=self.global_coordinates
-            )
-        return d
-
-
-class SeedBasedPatchCrop(Transform):
-    """
-    A class representing a seed-based patch crop transformation.
-
-    Attributes:
-        roi_size: Tuple indicating the size of the region of interest (ROI).
-
-    Methods:
-        __call__: Crop a patch from the input image centered around the seed coordinate.
-
-    Args:
-        roi_size: Tuple indicating the size of the region of interest (ROI).
-
-    Returns:
-        NdarrayOrTensor: Cropped patch of shape (C, Ph, Pw, Pd), where (Ph, Pw, Pd) is the patch size.
-
-    Raises:
-        AssertionError: If the input image has dimensions other than (C, H, W, D)
-        AssertionError: If the coordinates are invalid (e.g., min_h >= max_h)
-    """
-
-    def __init__(self, roi_size) -> None:
-        """
-        Initialize SeedBasedPatchCrop class.
-
-        Args:
-            roi_size (tuple): Tuple indicating the size of the region of interest (ROI).
-        """
-        super().__init__()
-        self.roi_size = roi_size
-
-    def __call__(
-        self, img: NdarrayOrTensor, center: tuple, global_coordinates=False
-    ) -> NdarrayOrTensor:
-        """
-        Crop a patch from the input image centered around the seed coordinate.
-
-        Args:
-            img (NdarrayOrTensor): Image to crop, with dimensions (C, H, W, D). C is the number of channels.
-            center (tuple): Seed coordinate around which to crop the patch (X, Y, Z).
-            global_coordinates (bool): If True, seed coordinate is in global space; otherwise, local space.
-
-        Returns:
-            NdarrayOrTensor: Cropped patch of shape (C, Ph, Pw, Pd), where (Ph, Pw, Pd) is the patch size.
-        """
-        assert len(img.shape) == 4, "Input image must have dimensions: (C, H, W, D)"
-        C, H, W, D = img.shape
-        Ph, Pw, Pd = self.roi_size
-
-        # If global coordinates, convert to local coordinates
-        if global_coordinates:
-            center = np.linalg.inv(np.array(img.affine)) @ np.array(center + (1,))
-            center = [int(x) for x in center[:3]]
-
-        # Calculate and clamp the ranges for cropping
-        min_h, max_h = max(center[0] - Ph // 2, 0), min(center[0] + Ph // 2, H)
-        min_w, max_w = max(center[1] - Pw // 2, 0), min(center[1] + Pw // 2, W)
-        min_d, max_d = max(center[2] - Pd // 2, 0), min(center[2] + Pd // 2, D)
-
-        # Check if coordinates are valid
-        assert min_h < max_h, "Invalid coordinates: min_h >= max_h"
-        assert min_w < max_w, "Invalid coordinates: min_w >= max_w"
-        assert min_d < max_d, "Invalid coordinates: min_d >= max_d"
-
-        # Crop the patch from the image
-        patch = img[:, min_h:max_h, min_w:max_w, min_d:max_d]
-
-        return patch
