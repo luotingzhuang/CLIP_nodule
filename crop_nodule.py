@@ -10,10 +10,11 @@ from utils.utils import get_transforms_raw
 
 
 class NoduleDataset(CSVDataset):
-    def __init__(self, dataset_path, subset=None):
+    def __init__(self, dataset_path, crop_size, subset=None):
 
         self.dataset_path = dataset_path
-        self.transform = get_transforms_raw(spatial_size=(100, 100, 100))
+        self.crop_size = crop_size
+        self.transform = get_transforms_raw(spatial_size=(self.crop_size, self.crop_size, self.crop_size))
         dataset_csv = pd.read_csv(dataset_path)
         self.dataset_csv = dataset_csv
         super().__init__(dataset_csv, transform=self.transform)
@@ -48,6 +49,12 @@ def loadargs():
         type=str,
         default="./cropped_img",
         help="Path to save the cropped nodules",
+    )
+    parser.add_argument(
+        "--crop_size",
+        type=int,
+        default=100,
+        help="Size of the crop for the nodules",
     )
     return parser.parse_args()
 
