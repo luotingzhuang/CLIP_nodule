@@ -44,8 +44,6 @@ def load_args():
     parser.add_argument("--batch_size", type=int, default=4, help="Batch size for training")
     parser.add_argument("--lr", type=float, default=1e-4, help="Learning rate for the optimizer")
     parser.add_argument("--weight_decay", type=float, default=1e-1, help="Weight decay for the optimizer")
-    parser.add_argument("--patience", type=int, default=5, help="Patience for the learning rate scheduler")
-    parser.add_argument("--factor", type=float, default=0.5, help="Factor for the learning rate scheduler")
     parser.add_argument("--epochs", type=int, default=100, help="Number of epochs for training")
     parser.add_argument("--es_warmup", type=int, default=0, help="Warmup epochs for early stopping")
     parser.add_argument("--es_patience", type=int, default=5, help="Patience for early stopping")
