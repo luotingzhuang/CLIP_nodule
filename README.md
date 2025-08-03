@@ -70,7 +70,7 @@ gdown --folder 'https://drive.google.com/drive/folders/1V1bUAt3Hl2WNh5eZmQCZHDqQ
 ### 4. :file_folder:Data Requirement
 To prepare a CSV file, list the path to the **NIfTI** file under the `image_path` column, along with the corresponding `pid` and `nodule_id`. `coordX`, `coordY`, and `coordZ` are the nodule centroid in a global coordinate system. These can be extracted from the nodule mask using the [code](https://github.com/AIM-Harvard/foundation-cancer-image-biomarker/blob/master/tutorials/get_seed_from_mask.ipynb). If the nodule mask is not available, we recommend using a nodule detection algorithm, such as [monai nodule detection](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/monaitoolkit/models/monai_lung_nodule_ct_detection) to obtain the nodule location from CT scans.
 
-The CSV file should contain six columns:  
+For inference, the CSV file should contain six columns:  
 | pid    | nodule_id | image_path                                      | coordX     | coordY     | coordZ      | 
 |--------|-----------|--------------------------------------------------|------------|------------|-------------|
 | 121389 | 0         | ./sample_data/121389/2001-01-02/image.nii.gz     | -38.038567 | -73.942905 | -111.030769 |
@@ -115,6 +115,24 @@ CUDA_VISIBLE_DEVICES=0 python evaluate.py --model_path ./ckpt --dataset_path ./d
 | `--save_path` | str | `./results_csv` | Path to save the results. |
 
 The output CSV file will be saved at `{save_path}/result.csv`. It includes the pid and the corresponding predicted probabilities. Each `raw_X` column represents the probability output from fold X, while the `ensemble` column contains the average probability across all folds.
+
+## :lungs:Model Training
+### 1. :broom:Image Preprocessing
+Similarly, for image preprocessing, we also need to crop a 100×100×100 mm bounding box around the nodule and save the resulting cropped volume as a `.pt` file for later use.
+
+```bash
+python crop_nodule.py --dataset_path ./dataset_csv/sample_csv.csv --save_path ./cropped_img
+```
+
+The nodule crop will be saved with the format `{pid}_{nodule_id}.pt`.
+
+### 2. :broom:Semantic Features Preprocessing
+Due to data sharing restrictions, we cannot release the in-house annotated semantic features for the NLST dataset. However, we provide synthetic data to illustrate usage. The CSV file is in
+`./dataset_csv/sample_csv_semantic_feats.csv`.
+
+We need to convert semantic features, which were originally in tabular format, into texts. The code for transformation is shown in [./notebook/tabular2text.ipynb](https://github.com/luotingzhuang/CLIP_nodule/blob/master/notebook/tabular2text.ipynb).
+
+Download `report_generation` from the [link](https://drive.google.com/drive/folders/1LO3t7r6xZ6WakMFTt17snKRggsNCvL21?usp=sharing) and put it under `./CLIP_nodule`.
 
 ## Acknowledgements
 This project is based on the code from the following repository:
