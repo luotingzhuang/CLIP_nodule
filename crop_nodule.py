@@ -6,7 +6,7 @@ import monai
 from tqdm import tqdm
 import argparse
 from monai.data import CSVDataset
-from utils.utils import get_transforms_raw
+from utils.preprocess import get_transforms_raw
 
 
 class NoduleDataset(CSVDataset):
