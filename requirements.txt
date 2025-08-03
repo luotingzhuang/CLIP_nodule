@@ -8,6 +8,7 @@ torchio==0.20.19
 
 nlpaug==1.1.11
 tensorboardX==2.6.2.2
+betacal==1.1.0
 
 #openai clip
 ftfy==6.3.1

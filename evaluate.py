@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import monai
 import argparse
+from betacal import BetaCalibration
 
 from utils.utils import init_model
 from dataset.dataset_visiononly import VisionDatasetText
@@ -48,6 +49,12 @@ def load_eval_args():
         help="Name of the checkpoint file to load",
     )
 
+    parser.add_argument(
+        "--calibrate",
+        action="store_true",
+        help="Whether to use calibration for evaluation",
+    )
+
     return parser.parse_args()
 
 
@@ -72,7 +79,7 @@ if __name__ == "__main__":
     all_test_result = []
 
     # Loop through folds
-    for fold in range(5):
+    for fold in range(args.n_splits):
         print(f"Loading fold {fold}...")
         try:
             weight_path = os.path.join(
@@ -99,6 +106,22 @@ if __name__ == "__main__":
     )
     outputdf.loc[:, "ensemble"] = outputdf.mean(1).values
     outputdf = pd.concat([all_test_result[0][["pid", "nodule_id"]], outputdf], axis=1)
+
+
+    if eval_args.calibrate:
+        print("Calibrating results...")
+        import joblib
+        for fold in range(args.n_splits):
+            calibrator = joblib.load(
+                os.path.join(eval_args.model_path, f"fold_{fold}/cal_{fold}.pkl")
+            )
+            outputdf[f"calibrated_{fold}"] = calibrator.transform(
+                outputdf[f"raw_{fold}"].values
+            )
+        outputdf["calibrated_ensemble"] = outputdf[
+            [f"calibrated_{i}" for i in range(args.n_splits)]
+        ].mean(axis=1)
+        
 
     os.makedirs(eval_args.save_path, exist_ok=True)
     outputdf.to_csv(os.path.join(eval_args.save_path, 
