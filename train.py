@@ -1,6 +1,7 @@
 import os
 import argparse
 from tensorboardX import SummaryWriter
+from datetime import datetime
 import torch
 from utils.utils import init_model, build_loaders, EarlyStopping
 from utils.train import train_epoch, valid_epoch
@@ -72,12 +73,9 @@ def load_args():
 def main():
     args = load_args()
     result_dir = args.result_dir
-    exp_name = f"model{args.model.replace('/','_')}_tuning{args.tuning}_bz{args.batch_size}_j{args.jitter}_lr{args.lr}_wd{args.weight_decay}_epochs{args.epochs}_ga{args.ga}_patience{args.es_patience}_weighted{args.weighted}_tau{args.tau}"
-    exp_name += f"_clipweight{args.clip_loss_weight}_imgweight{args.img_loss_weight}_textweight{args.text_loss_weight}"
+    timepoint = datetime.now().strftime("%Y%m%d_%H%M%S")
+    exp_name = f"experiment_{timepoint}"
 
-    if 'lora' in args.tuning:
-        exp_name += f"_lora_{args.position}_{args.encoder}_r{args.r}_alpha{args.alpha}_dropout{args.dropout_rate}"
-        exp_name += f"_params{''.join(args.params)}"
 
 
     result_dir = os.path.join(result_dir, exp_name)
