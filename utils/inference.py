@@ -44,7 +44,6 @@ def load_args(model_path: str):
     args.clip_loss_weight = float(args_dict["clip_loss_weight"])
     args.img_loss_weight = float(args_dict["img_loss_weight"])
     args.text_loss_weight = float(args_dict["text_loss_weight"])
-    args.prompter = args_dict["prompter"]
     args.weighted = args_dict["weighted"]
     args.debug = False
     args.tau = float(args_dict["tau"])
@@ -60,6 +59,9 @@ def load_args(model_path: str):
             args.params = ["qkv", "query", "key", "value"]
         else:
             args.params = ["q", "k", "v"]
+
+
+
     print(args.__dict__)
     return args
 
