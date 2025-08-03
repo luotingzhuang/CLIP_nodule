@@ -2,7 +2,7 @@
 SimpleITK==2.4.0
 nibabel==5.3.2
 monai==1.4.0
-foundation-cancer-image-biomarker
+foundation-cancer-image-biomarker==1.0.0
 torchio==0.20.19
 
 

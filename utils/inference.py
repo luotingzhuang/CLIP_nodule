@@ -35,6 +35,7 @@ def load_args(model_path: str):
     args.img_dir = args_dict["img_dir"]
     args.split_dir = args_dict["split_dir"]
     args.text_dir = args_dict["text_dir"]
+    args.n_splits = int(args_dict["n_splits"])
 
     args.jitter = 0
     args.model = args_dict["model"]
