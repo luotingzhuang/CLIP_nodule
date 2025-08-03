@@ -40,6 +40,14 @@ def load_eval_args():
         default="./results_csv",
         help="Path to save the results",
     )
+
+    parser.add_argument(
+        "--ckpt_file",
+        type=str,
+        default="best_both.pt",
+        help="Name of the checkpoint file to load"
+    )
+
     return parser.parse_args()
 
 
@@ -67,7 +75,7 @@ if __name__ == "__main__":
         print(f"Loading fold {fold}...")
         try:
             weight_path = os.path.join(
-                eval_args.model_path, f"fold_{fold}/best_both.pt"
+                eval_args.model_path, f"fold_{fold}/{eval_args.ckpt_file}"
             )
             print("Loading model from", weight_path)
             pretrained_dict = torch.load(weight_path, map_location=device)["model"]
