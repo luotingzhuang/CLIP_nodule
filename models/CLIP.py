@@ -110,11 +110,11 @@ class CLIPModel(nn.Module):
         attention_mask=None,
         **kwargs,
     ):
-        input_ids = input_ids.cuda()
+        input_ids = input_ids.to(device)
         if attention_mask is not None:
-            attention_mask = attention_mask.cuda()
-        pixel_values = pixel_values.cuda()
-        labels = kwargs["labels"].type(torch.LongTensor).cuda().squeeze()
+            attention_mask = attention_mask.to(device)
+        pixel_values = pixel_values.to(device)
+        labels = kwargs["labels"].type(torch.LongTensor).to(device).squeeze()
         mode = kwargs["mode"]
         img_embeds = self.encode_image(pixel_values)
         text_embeds = self.encode_text(input_ids)
@@ -170,13 +170,13 @@ class CLIPModel(nn.Module):
 
     def clip_loss(self, similarity: torch.Tensor) -> torch.Tensor:
 
-        targets = torch.arange(similarity.size(0)).cuda()
+        targets = torch.arange(similarity.size(0)).to(device)
         texts_loss = self.clip_criterion(similarity, targets, smoothing=0.1)
         images_loss = self.clip_criterion(similarity.t(), targets, smoothing=0.1)
         return (texts_loss + images_loss) / 2.0 * self.clip_loss_weight
 
     def compute_accuracy(self, logits):
-        gt = torch.arange(logits.size(0)).cuda()
+        gt = torch.arange(logits.size(0)).to(device)
         logits = F.softmax(logits, dim=-1)
         predictions = torch.argmax(logits, dim=-1)
         correct = (predictions == gt).sum().item()
