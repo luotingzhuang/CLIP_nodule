@@ -64,10 +64,6 @@ def train_epoch(args, model, train_loader, optimizer ):
         aupuc_img = average_precision_score(labels.cpu().numpy(), prob_img.cpu().detach().numpy()[:,1])
         aupuc_text = average_precision_score(labels.cpu().numpy(), prob_text.cpu().detach().numpy()[:,1])
 
-    auc_img = roc_auc_score(labels.cpu().numpy(), prob_img.cpu().detach().numpy()[:,1])
-    auc_text = roc_auc_score(labels.cpu().numpy(), prob_text.cpu().detach().numpy()[:,1])
-    aupuc_img = average_precision_score(labels.cpu().numpy(), prob_img.cpu().detach().numpy()[:,1])
-    aupuc_text = average_precision_score(labels.cpu().numpy(), prob_text.cpu().detach().numpy()[:,1])
     print(f"Loss: {loss_meter.avg}, Acc Img: {acc_img_meter.avg}, Acc Text: {acc_semantic_meter.avg}")
     print(f"AUC Img: {auc_img}, AUC Text: {auc_text}, AUPUC Img: {aupuc_img}, AUPUC Text: {aupuc_text}")
 
