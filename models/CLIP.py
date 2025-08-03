@@ -127,29 +127,22 @@ class CLIPModel(nn.Module):
 
         n_classifiers = 2.0
 
-        # remove na
-        logits_img = logits_img[labels >= 0, :]
-        logits_text = logits_text[labels >= 0, :]
-        labels = labels[labels >= 0]
-        if len(labels) == 0:
-            loss_pred = torch.tensor(0.0).cuda()
-        else:
-            if mode == "train":
-                loss_pred = (
-                    self.pred_criterion_train(logits_img, labels) * self.img_loss_weight
-                )
-                loss_pred += (
-                    self.pred_criterion_train(logits_text, labels)
-                    * self.text_loss_weight
-                )
+        if mode == "train":
+            loss_pred = (
+                self.pred_criterion_train(logits_img, labels) * self.img_loss_weight
+            )
+            loss_pred += (
+                self.pred_criterion_train(logits_text, labels)
+                * self.text_loss_weight
+            )
 
-            else:
-                loss_pred = (
-                    self.pred_criterion_val(logits_img, labels) * self.img_loss_weight
-                )
-                loss_pred += (
-                    self.pred_criterion_val(logits_text, labels) * self.text_loss_weight
-                )
+        else:
+            loss_pred = (
+                self.pred_criterion_val(logits_img, labels) * self.img_loss_weight
+            )
+            loss_pred += (
+                self.pred_criterion_val(logits_text, labels) * self.text_loss_weight
+            )
 
         loss_pred = loss_pred / n_classifiers
 
