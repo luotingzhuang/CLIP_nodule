@@ -53,7 +53,7 @@ class CLIPModel(nn.Module):
             self.pred_criterion_train = nn.CrossEntropyLoss(weight=torch.from_numpy(self.class_weights).float())
         self.pred_criterion_val = nn.CrossEntropyLoss(weight=torch.from_numpy(self.class_weights).float())
 
-        
+
     def encode_text(self, input_ids=None):
         """
         Encodes the text input using the CLIP model.
@@ -107,7 +107,7 @@ class CLIPModel(nn.Module):
         labels = kwargs["labels"].type(torch.LongTensor).cuda()
         mode = kwargs["mode"]
         img_embeds = self.encode_image(pixel_values)
-        text_embeds = self.encode_text(input_ids, attention_mask)
+        text_embeds = self.encode_text(input_ids)
 
         # clip
         img_embeds = img_embeds / img_embeds.norm(dim=-1, keepdim=True)
