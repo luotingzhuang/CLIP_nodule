@@ -10,9 +10,10 @@ from utils.preprocess import slices2d_9
 
 
 class VisionDatasetText(Dataset):
-    '''
+    """
     Dataset class for loading only images during inference
-    '''
+    """
+
     def __init__(self, args):
         super().__init__()
         self.dataset_path = args.dataset_path
@@ -23,8 +24,10 @@ class VisionDatasetText(Dataset):
         try:
             dataset_csv = pd.read_csv(args.dataset_path)
         except FileNotFoundError:
-            raise FileNotFoundError(f"Dataset CSV file not found at {args.dataset_path}")
-        
+            raise FileNotFoundError(
+                f"Dataset CSV file not found at {args.dataset_path}"
+            )
+
         self.data_subset = dataset_csv
         print(f"dataset size: {dataset_csv.shape[0]}")
 
@@ -44,7 +47,7 @@ class VisionDatasetText(Dataset):
         img = np.clip(img, -1000, 500)
         # normalize
         img = (img + 1000) / 1500
-        #crop and slice from 9 directions
+        # crop and slice from 9 directions
         nine_slices = slices2d_9(img)
         img_2d = torch.stack(
             [self.normalize(torch.from_numpy(s)) for s in nine_slices], dim=0
@@ -54,4 +57,3 @@ class VisionDatasetText(Dataset):
 
     def __len__(self):
         return len(self.data_subset)
-

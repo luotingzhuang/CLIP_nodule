@@ -61,8 +61,6 @@ def load_args(model_path: str):
         else:
             args.params = ["q", "k", "v"]
 
-
-
     print(args.__dict__)
     return args
 

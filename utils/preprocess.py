@@ -27,6 +27,7 @@ def random_crop2d(img, crop_size=50, jitter=0):
     assert img_2d.shape == (crop_size, crop_size)
     return img_2d
 
+
 def slices2d_9(self, img, jitter=0):
     """
     Get 9 slices from the 3D image in 9 different directions.
@@ -52,7 +53,10 @@ def slices2d_9(self, img, jitter=0):
     nine_directions.append(rotated_img_01[:, center_ind[6], :])
     nine_directions.append(rotated_img_12[:, center_ind[7], :])
     nine_directions.append(rotated_img_12[:, :, center_ind[8]])
-    nine_directions= [self.convert_to_rgb(self.resize_img(self.random_crop2d(img_i, 50, jitter))) for img_i in nine_directions]
+    nine_directions = [
+        self.convert_to_rgb(self.resize_img(self.random_crop2d(img_i, 50, jitter)))
+        for img_i in nine_directions
+    ]
 
     return nine_directions
 
@@ -69,6 +73,7 @@ def resize_img(img, target_shape=(224, 224)):
     zoom_factors = [target_shape[i] / img.shape[i] for i in range(2)]
     return zoom(img, zoom_factors, order=1)
 
+
 @staticmethod
 def convert_to_rgb(img):
     """
@@ -82,10 +87,11 @@ def convert_to_rgb(img):
     return img
 
 
-'''
+"""
 The follwing function is adapted from foundation cancer image biomarker model code
 https://github.com/AIM-Harvard/foundation-cancer-image-biomarker
-'''
+"""
+
 
 def get_transforms_raw(spatial_size=(50, 50, 50), jitter=None):
     return monai_transforms.Compose(
@@ -251,9 +257,9 @@ class SeedBasedPatchCrop(Transform):
             center = [int(x) for x in center[:3]]
 
         # Calculate and clamp the ranges for cropping
-        start_h, end_h = center[0] - Ph // 2 , center[0] + (Ph + 1) // 2
-        start_w, end_w = center[1] - Pw // 2 , center[1] + (Pw + 1) // 2
-        start_d, end_d = center[2] - Pd // 2 , center[2] + (Pd + 1) // 2
+        start_h, end_h = center[0] - Ph // 2, center[0] + (Ph + 1) // 2
+        start_w, end_w = center[1] - Pw // 2, center[1] + (Pw + 1) // 2
+        start_d, end_d = center[2] - Pd // 2, center[2] + (Pd + 1) // 2
 
         min_h, max_h = max(start_h, 0), min(end_h, H)
         min_w, max_w = max(start_w, 0), min(end_w, W)
@@ -271,12 +277,17 @@ class SeedBasedPatchCrop(Transform):
         # Crop the patch from the image
         patch = img[:, min_h:max_h, min_w:max_w, min_d:max_d]
 
-        #pad
+        # pad
         pad_h_before, pad_h_after = min_h - start_h, end_h - max_h
         pad_w_before, pad_w_after = min_w - start_w, end_w - max_w
         pad_d_before, pad_d_after = min_d - start_d, end_d - max_d
 
-        pad = ((0, 0), (pad_h_before, pad_h_after), (pad_w_before, pad_w_after), (pad_d_before, pad_d_after))
-        patch_padded = np.pad(patch, pad, mode='constant', constant_values=0)
+        pad = (
+            (0, 0),
+            (pad_h_before, pad_h_after),
+            (pad_w_before, pad_w_after),
+            (pad_d_before, pad_d_after),
+        )
+        patch_padded = np.pad(patch, pad, mode="constant", constant_values=0)
 
         return patch_padded

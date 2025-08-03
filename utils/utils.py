@@ -14,6 +14,7 @@ class AvgMeter:
     """
     Average meter for tracking metrics.
     """
+
     def __init__(self, name="Metric"):
         self.name = name
         self.reset()
@@ -36,12 +37,11 @@ def get_lr(optimizer):
         return param_group["lr"]
 
 
-
-
 class EarlyStopping:
     """
     Early stopping mechanism to stop training when validation loss stops improving.
     """
+
     def __init__(
         self, warmup: int = 0, patience: int = 20, verbose: bool = True
     ) -> None:
@@ -143,28 +143,31 @@ def build_loaders(args, fold, mode):
         dataloader: DataLoader for the specified mode.
     """
 
-    dataset = CLIPDatasetText(args, fold, mode = mode,seed = 0)
-    train_collate_fn = CLIPDatasetTextCollator(args, mode = mode)
+    dataset = CLIPDatasetText(args, fold, mode=mode, seed=0)
+    train_collate_fn = CLIPDatasetTextCollator(args, mode=mode)
 
-    if args.weighted == 'diagnosis':
+    if args.weighted == "diagnosis":
         sample_weights = dataset.sample_weights
-    elif args.weighted == 'semantic':
+    elif args.weighted == "semantic":
         sample_weights = dataset.semantic_weights
     else:
         raise ValueError("Invalid weighted argument")
 
     if mode == "train":
-        sampler = WeightedRandomSampler(weights = sample_weights, num_samples = len(dataset), replacement = True)
+        sampler = WeightedRandomSampler(
+            weights=sample_weights, num_samples=len(dataset), replacement=True
+        )
         args.class_weights = dataset.class_weights
-        print(f"Class weights: {args.class_weights}" )
+        print(f"Class weights: {args.class_weights}")
     else:
         sampler = RandomSampler(dataset)
 
-    dataloader = DataLoader(dataset, 
-                            collate_fn = train_collate_fn,
-                            batch_size = args.batch_size, 
-                            num_workers = args.num_workers, 
-                            sampler = sampler,
-                            pin_memory = False)
+    dataloader = DataLoader(
+        dataset,
+        collate_fn=train_collate_fn,
+        batch_size=args.batch_size,
+        num_workers=args.num_workers,
+        sampler=sampler,
+        pin_memory=False,
+    )
     return dataloader
-

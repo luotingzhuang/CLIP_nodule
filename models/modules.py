@@ -4,7 +4,6 @@ import torch.nn.functional as F
 
 
 class ProjectionHead(nn.Module):
-
     """
     Projection Head for embedding projection in CLIP model.
     Args:
@@ -12,7 +11,9 @@ class ProjectionHead(nn.Module):
         projection_dim (int): Dimension of the output projections.
         dropout (float): Dropout rate for the projection head.
     Returns:
-        x (torch.Tensor): Projected embeddings after applying linear transformation, GELU activation, dropout"""
+        x (torch.Tensor): Projected embeddings after applying linear transformation, GELU activation, dropout
+    """
+
     def __init__(self, embedding_dim=512, projection_dim=256, dropout=0.1):
         super().__init__()
         self.projection = nn.Linear(embedding_dim, projection_dim)
@@ -66,12 +67,11 @@ class Attention(nn.Module):
             nn.Tanh(),
             nn.Linear(self.L, self.ATTENTION_BRANCHES),  # matrix W
         )
-        
+
         # kaiming initialization
         nn.init.kaiming_normal_(self.projector[0].weight)
         nn.init.kaiming_normal_(self.attention[0].weight)
         nn.init.kaiming_normal_(self.attention[2].weight)
-
 
     def forward(self, embeds):
         embeds = embeds.view(-1, self.feature_size)

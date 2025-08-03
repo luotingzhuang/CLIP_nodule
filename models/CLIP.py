@@ -12,6 +12,7 @@ class CLIPModel(nn.Module):
     """
     CLIP Model for image-text embeddings and classification.
     """
+
     def __init__(
         self,
         args,
@@ -39,7 +40,9 @@ class CLIPModel(nn.Module):
         self.dtype = model.dtype
         self.text_projection = model.text_projection
 
-        self.image_projection = Attention(512, M=self.out_dim, L=self.out_dim//2, ATTENTION_BRANCHES=1)
+        self.image_projection = Attention(
+            512, M=self.out_dim, L=self.out_dim // 2, ATTENTION_BRANCHES=1
+        )
         self.semantic_projection = ProjectionHead(
             embedding_dim=512, projection_dim=self.out_dim, dropout=args.dropout
         )
@@ -51,12 +54,15 @@ class CLIPModel(nn.Module):
 
         self.clip_criterion = LabelSmoothingCrossEntropy()
 
-        if args.weighted == 'diagnosis':
+        if args.weighted == "diagnosis":
             self.pred_criterion_train = nn.CrossEntropyLoss()
-        elif args.weighted == 'semantic':
-            self.pred_criterion_train = nn.CrossEntropyLoss(weight=torch.from_numpy(self.class_weights).float())
-        self.pred_criterion_val = nn.CrossEntropyLoss(weight=torch.from_numpy(self.class_weights).float())
-
+        elif args.weighted == "semantic":
+            self.pred_criterion_train = nn.CrossEntropyLoss(
+                weight=torch.from_numpy(self.class_weights).float()
+            )
+        self.pred_criterion_val = nn.CrossEntropyLoss(
+            weight=torch.from_numpy(self.class_weights).float()
+        )
 
     def encode_text(self, input_ids=None):
         """
@@ -124,7 +130,6 @@ class CLIPModel(nn.Module):
 
         clip_acc_text = self.compute_accuracy(logits_per_image)
         clip_acc_images = self.compute_accuracy(logits_per_text)
-        
 
         # malignancy prediction
         logits_img = self.classifier_image(img_embeds)
@@ -135,8 +140,7 @@ class CLIPModel(nn.Module):
                 self.pred_criterion_train(logits_img, labels) * self.img_loss_weight
             )
             loss_pred += (
-                self.pred_criterion_train(logits_text, labels)
-                * self.text_loss_weight
+                self.pred_criterion_train(logits_text, labels) * self.text_loss_weight
             )
 
         else:
