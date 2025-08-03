@@ -26,7 +26,7 @@ SEMANTIC_FEATS = ['nodule_margin_conspicuity',
        'pleural_retraction', 'vascular_convergence', 'septal_stretching',
        'paracicatricial_emphysema']
 
-LABEL = ['malignancy']
+LABEL = ['malignant']
 
 #Semantic features augmentation for synonyms replacement
 reserved_tokens = [
@@ -263,7 +263,8 @@ class CLIPDatasetTextCollator:
             texts = [text[:pos_i].replace('\n','.'), text[pos_i:].replace('\n','')]
             
             if self.mode == 'train':
-                text_selected = texts[-1]#random.choice(texts)
+                #randomly select one of the two texts
+                text_selected = texts[-1]
                 if random.random() < 0.5:
                     text_selected = self.aug.augment(text_selected)[0]
             else:
