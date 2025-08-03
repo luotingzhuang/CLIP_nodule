@@ -3,8 +3,9 @@ import argparse
 from tensorboardX import SummaryWriter
 from datetime import datetime
 import torch
-from utils.utils import init_model, build_loaders, EarlyStopping
+from utils.utils import init_model, build_loaders, EarlyStopping, TeeLogger
 from utils.train import train_epoch, valid_epoch
+import sys
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -224,6 +225,8 @@ def load_args():
     args = parser.parse_args()
     return args
 
+
+sys.stdout = sys.stderr = TeeLogger("output.log")
 
 def main():
     args = load_args()

@@ -5,10 +5,23 @@ from loralib.utils import apply_lora, mark_only_lora_as_trainable
 from dataset.dataset_text import CLIPDatasetText, CLIPDatasetTextCollator
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import WeightedRandomSampler, RandomSampler
-
+import sys
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
+class TeeLogger:
+    def __init__(self, filename):
+        self.terminal = sys.stdout
+        self.log = open(filename, "w")
+
+    def write(self, message):
+        self.terminal.write(message)  # print to terminal
+        self.log.write(message)       # write to file
+
+    def flush(self):
+        self.terminal.flush()
+        self.log.flush()
 
 class AvgMeter:
     """
