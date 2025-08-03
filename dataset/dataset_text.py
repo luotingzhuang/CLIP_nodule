@@ -102,7 +102,7 @@ class CLIPDatasetText(Dataset):
     def __getitem__(self, idx):
         pid = self.data_subset.pid[idx]
         nodule_id = self.data_subset.nodule_id[idx]
-        label = self.data_subset.malignancy[idx]
+        label = self.data_subset[LABEL].values[idx]
 
 
         img_path = f'{self.img_dir}/{pid}_{nodule_id}.pt'
