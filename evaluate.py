@@ -56,6 +56,7 @@ if __name__ == "__main__":
     args = load_args(eval_args.model_path)
     args.dataset_path = eval_args.dataset_path
     args.img_dir = eval_args.img_dir
+    exp_name = eval_args.model_path.split("/")[-1]
 
     # DataLoaders
     test_dataset = VisionDatasetText(args)
@@ -101,4 +102,4 @@ if __name__ == "__main__":
 
     os.makedirs(eval_args.save_path, exist_ok=True)
     outputdf.to_csv(os.path.join(eval_args.save_path, "result.csv"), index=False)
-    print("Results saved to", os.path.join(eval_args.save_path, "result.csv"))
+    print("Results saved to", os.path.join(eval_args.save_path, f"{exp_name}_result.csv"))
