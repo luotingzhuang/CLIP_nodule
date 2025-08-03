@@ -113,8 +113,13 @@ Each CSV file must contain a single column named pid, which lists all patient ID
 ### 1. :arrow_forward:Run Training
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python train.py --dataset_path ./dataset_csv/sample_csv_with_semantic_feats.csv \\
---result_dir ./results --img_dir ./cropped_img --text_dir ./report_generation --splits ./splits --n_splits 5
+CUDA_VISIBLE_DEVICES=0 python train.py \
+  --dataset_path ./dataset_csv/sample_csv_with_semantic_feats.csv \
+  --result_dir ./results \
+  --img_dir ./cropped_img \
+  --text_dir ./report_generation \
+  --split_dir ./splits \
+  --n_splits 5
 ```
 #### Important Arguments
 | Argument             | Type    | Default  | Description                                     |
@@ -159,9 +164,13 @@ experiment_YYYYMMDD_HHMMSS/
 ### 2. :arrow_forward:Run Inference
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python evaluate.py --model_path ./results/experiment_YYYYMMDD_HHMMSS \\
---dataset_path ./dataset_csv/sample_csv.csv --img_dir ./cropped_img --num_workers 4 \\
---save_path ./results_csv --ckpt_file best_both.pt
+CUDA_VISIBLE_DEVICES=0 python evaluate.py \
+  --model_path ./results/experiment_YYYYMMDD_HHMMSS \
+  --dataset_path ./dataset_csv/sample_csv.csv \
+  --img_dir ./cropped_img \
+  --num_workers 4 \
+  --save_path ./results_csv \
+  --ckpt_file best_both.pt
 ```
 The output CSV file will be saved at `{save_path}/experiment_YYYYMMDD_HHMMSS_best_both_result.csv`. It includes the pid and the corresponding predicted probabilities. Each `raw_X` column represents the probability output from fold X, while the `ensemble` column contains the average probability across all folds.
 
@@ -172,8 +181,13 @@ Download `ckpt` from the [link](https://drive.google.com/drive/folders/1WcOUPaSR
 gdown --folder 'https://drive.google.com/drive/folders/1V1bUAt3Hl2WNh5eZmQCZHDqQmEd1FT7W?usp=sharing'
 ```
 ```bash
-CUDA_VISIBLE_DEVICES=0 python evaluate.py --model_path ./ckpt --dataset_path ./dataset_csv/sample_csv.csv \\
---img_dir ./cropped_img --num_workers 4 --save_path ./results_csv --ckpt_file best_both.pt
+CUDA_VISIBLE_DEVICES=0 python evaluate.py \
+  --model_path ./ckpt \
+  --dataset_path ./dataset_csv/sample_csv.csv \
+  --img_dir ./cropped_img \
+  --num_workers 4 \
+  --save_path ./results_csv \
+  --ckpt_file best_both.pt
 ```
 
 ## Acknowledgements
