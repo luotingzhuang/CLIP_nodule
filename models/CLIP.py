@@ -104,7 +104,7 @@ class CLIPModel(nn.Module):
         if attention_mask is not None:
             attention_mask = attention_mask.cuda()
         pixel_values = pixel_values.cuda()
-        labels = kwargs["labels"].type(torch.LongTensor).cuda()
+        labels = kwargs["labels"].type(torch.LongTensor).cuda().squeeze()
         mode = kwargs["mode"]
         img_embeds = self.encode_image(pixel_values)
         text_embeds = self.encode_text(input_ids)
@@ -125,8 +125,6 @@ class CLIPModel(nn.Module):
         # malignancy prediction
         logits_img = self.classifier_image(img_embeds)
         logits_text = self.classifier_text(text_embeds)
-
-        import pdb; pdb.set_trace()
 
         if mode == "train":
             loss_pred = (
