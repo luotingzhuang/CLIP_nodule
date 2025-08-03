@@ -66,8 +66,9 @@ For inference, the CSV file should contain six columns:
 Refer to `./dataset_csv/sample_csv.csv` as an example. Note that the `malignant` column is optional in inference.
 
 Due to data sharing restrictions, we cannot release the in-house annotated semantic features for the NLST dataset. However, we provide synthetic data to illustrate usage. The CSV file is in
-`./dataset_csv/sample_csv_semantic_feats.csv`. CT scans in our sample data can be downloaded from the [link](https://drive.google.com/drive/folders/1WcOUPaSRRIENU-U1SQpC41WZz2nPP4iH?usp=drive_link).
+`./dataset_csv/sample_csv_semantic_feats.csv`. 
 
+CT scans in our sample data can be downloaded from the [link](https://drive.google.com/drive/folders/1WcOUPaSRRIENU-U1SQpC41WZz2nPP4iH?usp=drive_link).
 ```bash
 # You can also download it using gdown
 pip install gdown
