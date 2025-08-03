@@ -226,13 +226,14 @@ def load_args():
     return args
 
 
-sys.stdout = sys.stderr = TeeLogger("output.log")
+
 
 def main():
     args = load_args()
     result_dir = args.result_dir
     timepoint = datetime.now().strftime("%Y%m%d_%H%M%S")
     exp_name = f"experiment_{timepoint}"
+
 
     result_dir = os.path.join(result_dir, exp_name)
     if not os.path.exists(result_dir):
@@ -242,6 +243,10 @@ def main():
         overwrite = input("Overwrite? (y/n)")
         if overwrite.lower() != "y":
             return
+        
+
+    #logging
+    sys.stdout = sys.stderr = TeeLogger(os.path.join(result_dir, "log.txt"))
 
     # save args
     with open(os.path.join(result_dir, "args.txt"), "w") as f:
