@@ -56,6 +56,14 @@ def train_epoch(args, model, train_loader, optimizer ):
     prob_img = torch.softmax(logits_img_all, dim = -1)
     prob_text = torch.softmax(logits_text_all, dim = -1)
 
+    if np.all(labels.cpu().numpy() == 0) or np.all(labels.cpu().numpy() == 1):
+        auc_img, auc_text, aupuc_img, aupuc_text = np.nan, np.nan, np.nan, np.nan
+    else:
+        auc_img = roc_auc_score(labels.cpu().numpy(), prob_img.cpu().detach().numpy()[:,1])
+        auc_text = roc_auc_score(labels.cpu().numpy(), prob_text.cpu().detach().numpy()[:,1])
+        aupuc_img = average_precision_score(labels.cpu().numpy(), prob_img.cpu().detach().numpy()[:,1])
+        aupuc_text = average_precision_score(labels.cpu().numpy(), prob_text.cpu().detach().numpy()[:,1])
+
     auc_img = roc_auc_score(labels.cpu().numpy(), prob_img.cpu().detach().numpy()[:,1])
     auc_text = roc_auc_score(labels.cpu().numpy(), prob_text.cpu().detach().numpy()[:,1])
     aupuc_img = average_precision_score(labels.cpu().numpy(), prob_img.cpu().detach().numpy()[:,1])
@@ -114,13 +122,14 @@ def valid_epoch(args, model, valid_loader, mode = 'val'):
     prob_img = torch.softmax(logits_img_all, dim = -1)
     prob_text = torch.softmax(logits_text_all, dim = -1)
 
-    try:
+    if np.all(labels.cpu().numpy() == 0) or np.all(labels.cpu().numpy() == 1):
+        auc_img, auc_text, aupuc_img, aupuc_text = np.nan, np.nan, np.nan, np.nan
+    else:
         auc_img = roc_auc_score(labels.cpu().numpy(), prob_img.cpu().detach().numpy()[:,1])
         auc_text = roc_auc_score(labels.cpu().numpy(), prob_text.cpu().detach().numpy()[:,1])
         aupuc_img = average_precision_score(labels.cpu().numpy(), prob_img.cpu().detach().numpy()[:,1])
         aupuc_text = average_precision_score(labels.cpu().numpy(), prob_text.cpu().detach().numpy()[:,1])
-    except ValueError:
-        auc_img, aug_text, aupuc_img, aupuc_text = np.nan, np.nan, np.nan, np.nan
+        
 
     print(f"Mode {mode} - Loss: {loss_meter.avg}, Acc Img: {acc_img_meter.avg}, Acc Text: {acc_semantic_meter.avg}")
     print(f"AUC Img: {auc_img}, AUC Text: {auc_text}, AUPUC Img: {aupuc_img}, AUPUC Text: {aupuc_text}")
