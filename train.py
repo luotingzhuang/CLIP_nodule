@@ -16,7 +16,7 @@ def load_args():
     parser.add_argument("--result_dir", type=str, default="./results", help="Path to the result directory")
     parser.add_argument("--text_dir", type=str, default="./report_generation", help="Path to the report directory")
     parser.add_argument("--img_dir", type=str, default="./cropped_img", help="Path to the image directory")
-    parser.add_argument("--split_dir", type=str, default="./splits/split_fold5_seed0", help="Path to the split directory")
+    parser.add_argument("--split_dir", type=str, default="./splits", help="Path to the split directory")
     parser.add_argument("--n_splits", type=int, default=5, help="Number of splits")
     parser.add_argument("--crop_size", type=int, default=50, help="Size of the crop for the images")
     parser.add_argument("--clip_min", type=float, default=-1000, help="Minimum value for clipping the images")
