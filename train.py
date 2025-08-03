@@ -55,6 +55,7 @@ def load_args():
     parser.add_argument('--text_loss_weight', type=float, default=1.0, help="Weight for the text loss")
     parser.add_argument('--weighted', type=str, default='diagnosis', choices = ['diagnosis', 'semantic'], help="Weighted sampling method")
     parser.add_argument('--tau', type=float, default=0.07, help="Temperature for the CLIP loss")
+    parser.add_argument('--out_dim', type=int, default=256, help="Output dimension of last layer before classifier")
 
     # LoRA arguments
     parser.add_argument('--position', type=str, default='all', choices=['bottom', 'mid', 'up', 'half-up', 'half-bottom', 'all', 'top3'], help='where to put the LoRA modules')

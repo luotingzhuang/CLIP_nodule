@@ -11,6 +11,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class AvgMeter:
+    """
+    Average meter for tracking metrics.
+    """
     def __init__(self, name="Metric"):
         self.name = name
         self.reset()
@@ -36,6 +39,9 @@ def get_lr(optimizer):
 
 
 class EarlyStopping:
+    """
+    Early stopping mechanism to stop training when validation loss stops improving.
+    """
     def __init__(
         self, warmup: int = 0, patience: int = 20, verbose: bool = True
     ) -> None:
@@ -127,6 +133,15 @@ def init_model(args):
 
 
 def build_loaders(args, fold, mode):
+    """
+    Build data loaders for training, validation.
+    Args:
+        args: Arguments containing the configuration for the dataset.
+        fold: Fold number for cross-validation.
+        mode: Mode of the dataset ('train', 'val').
+    Returns:
+        dataloader: DataLoader for the specified mode.
+    """
 
     dataset = CLIPDatasetText(args, fold, mode = mode,seed = 0)
     train_collate_fn = CLIPDatasetTextCollator(args, mode = mode)

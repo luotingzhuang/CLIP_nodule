@@ -2,6 +2,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class LabelSmoothingCrossEntropy(nn.Module):
+    """
+    Label Smoothing Cross Entropy Loss
+
+    Args:
+        x: Predicted logits.
+        target: Ground truth labels.
+        smoothing: Smoothing factor.
+    Returns:
+        loss: Computed loss value.
+    """
     def __init__(self):
         super(LabelSmoothingCrossEntropy, self).__init__()
 

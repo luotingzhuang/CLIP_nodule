@@ -9,6 +9,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class CLIPModel(nn.Module):
+    """
+    CLIP Model for image-text embeddings and classification.
+    """
     def __init__(
         self,
         args,
@@ -20,6 +23,7 @@ class CLIPModel(nn.Module):
         self.clip_loss_weight = args.clip_loss_weight
         self.img_loss_weight = args.img_loss_weight
         self.text_loss_weight = args.text_loss_weight
+        self.out_dim = args.out_dim
 
         visual_encoder_name = args.model.split("_")[1]
         print("Loading openai clip...")
@@ -35,15 +39,15 @@ class CLIPModel(nn.Module):
         self.dtype = model.dtype
         self.text_projection = model.text_projection
 
-        self.image_projection = Attention(512, M=256, L=128)
+        self.image_projection = Attention(512, M=self.out_dim, L=self.out_dim//2, ATTENTION_BRANCHES=1)
         self.semantic_projection = ProjectionHead(
-            embedding_dim=512, projection_dim=256, dropout=args.dropout
+            embedding_dim=512, projection_dim=self.out_dim, dropout=args.dropout
         )
 
         self.logit_scale = nn.Parameter(torch.log(torch.tensor(1 / args.tau)))
 
-        self.classifier_image = nn.Linear(256, 2)
-        self.classifier_text = nn.Linear(256, 2)
+        self.classifier_image = nn.Linear(self.out_dim, 2)
+        self.classifier_text = nn.Linear(self.out_dim, 2)
 
         self.clip_criterion = LabelSmoothingCrossEntropy()
 

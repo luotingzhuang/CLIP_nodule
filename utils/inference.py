@@ -47,6 +47,7 @@ def load_args(model_path: str):
     args.weighted = args_dict["weighted"]
     args.debug = False
     args.tau = float(args_dict["tau"])
+    args.out_dim = int(args_dict["out_dim"]) if "out_dim" in args_dict else 256
 
     if args.tuning == "lora":
         args.encoder = args_dict["encoder"]

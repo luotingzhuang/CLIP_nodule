@@ -10,6 +10,19 @@ from utils.preprocess import get_transforms_raw
 
 
 class NoduleDataset(CSVDataset):
+    """
+    Dataset class for cropping nodules from the dataset.
+    It inherits from CSVDataset and applies transformations to the images.
+    
+    Args:
+        dataset_path (str): Path to the dataset CSV file.
+        crop_size (int): Size of the crop for the nodules.
+    
+    Returns:
+        pid (str): Patient ID.
+        nodule_id (str): Nodule ID.
+        img_processed (torch.Tensor): Processed image tensor after applying transformations.
+    """
     def __init__(self, dataset_path, crop_size):
 
         self.dataset_path = dataset_path
