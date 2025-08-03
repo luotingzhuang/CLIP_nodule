@@ -115,8 +115,8 @@ if __name__ == "__main__":
             calibrator = joblib.load(
                 os.path.join(eval_args.model_path, f"fold_{fold}/cal_{fold}.pkl")
             )
-            outputdf[f"calibrated_{fold}"] = calibrator.transform(
-                outputdf[f"raw_{fold}"].values
+            outputdf[f"calibrated_{fold}"] = calibrator.predict(
+                outputdf[f"raw_{fold}"]
             )
         outputdf["calibrated_ensemble"] = outputdf[
             [f"calibrated_{i}" for i in range(args.n_splits)]
