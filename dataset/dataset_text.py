@@ -297,7 +297,6 @@ class CLIPDatasetTextCollator:
         inputs["input_ids"] = text_inputs
         inputs["pixel_values"] = torch.stack(inputs["pixel_values"])
         inputs["labels"] = torch.tensor(np.stack(inputs["labels"]).astype(float))
-        inputs["pixel_values3d"] = torch.stack(inputs["pixel_values3d"])
 
         return inputs
 
