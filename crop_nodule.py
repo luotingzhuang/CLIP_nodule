@@ -65,7 +65,7 @@ if __name__ == "__main__":
     if not os.path.exists(args.save_path):
         os.makedirs(args.save_path)
 
-    dataset = NoduleDataset(args.dataset_path)
+    dataset = NoduleDataset(args.dataset_path, args.crop_size)
     dataloader = monai.data.DataLoader(
         dataset,
         batch_size=1,
