@@ -3,6 +3,9 @@ import numpy as np
 from models.CLIP import CLIPModel
 from loralib.utils import apply_lora, mark_only_lora_as_trainable
 from dataset.dataset_text import CLIPDatasetText, CLIPDatasetTextCollator
+from torch.utils.data import DataLoader
+from torch.utils.data.sampler import WeightedRandomSampler, RandomSampler
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -127,10 +130,6 @@ def build_loaders(args, fold, mode):
 
     dataset = CLIPDatasetText(args, fold, mode = mode,seed = 0)
     train_collate_fn = CLIPDatasetTextCollator(args, mode = mode)
-    if mode == "train":
-        shuffle = True
-    else:
-        shuffle = False
 
     if args.weighted == 'diagnosis':
         sample_weights = dataset.sample_weights
@@ -147,10 +146,10 @@ def build_loaders(args, fold, mode):
         sampler = RandomSampler(dataset)
 
     dataloader = DataLoader(dataset, 
-                                       collate_fn = train_collate_fn,
-                                        batch_size=args.batch_size, 
-                                        num_workers=args.num_workers, 
-                                         sampler = sampler,
-                                        pin_memory=False)
+                            collate_fn = train_collate_fn,
+                            batch_size = args.batch_size, 
+                            num_workers = args.num_workers, 
+                            sampler = sampler,
+                            pin_memory = False)
     return dataloader
 

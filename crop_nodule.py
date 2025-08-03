@@ -10,7 +10,7 @@ from utils.utils import get_transforms_raw
 
 
 class NoduleDataset(CSVDataset):
-    def __init__(self, dataset_path, crop_size, subset=None):
+    def __init__(self, dataset_path, crop_size):
 
         self.dataset_path = dataset_path
         self.crop_size = crop_size

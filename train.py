@@ -1,16 +1,7 @@
 import os
-import gc
-import numpy as np
-import pandas as pd
-from tqdm import tqdm
 import argparse
 from tensorboardX import SummaryWriter
-
 import torch
-from torch import nn
-from torch.utils.data import DataLoader
-from torch.utils.data.sampler import WeightedRandomSampler, RandomSampler
-
 from utils.utils import init_model, build_loaders, EarlyStopping
 from utils.train import train_epoch, valid_epoch
 
@@ -19,18 +10,37 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def load_args():
     #load arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset_path", type=str, default="./dataset_csv/datasets.csv", help="Path to the dataset csv file")
+
+    # datset args
+    parser.add_argument("--dataset_path", type=str, default="./dataset_csv/sample_csv_with_semantic_feats.csv", help="Path to the dataset csv file")
     parser.add_argument("--result_dir", type=str, default="./results", help="Path to the result directory")
-    parser.add_argument("--text_dir", type=str, default="../report_generation", help="Path to the report directory")
-    parser.add_argument("--img_dir", type=str, default="../cropped_img", help="Path to the image directory")
+    parser.add_argument("--text_dir", type=str, default="./report_generation", help="Path to the report directory")
+    parser.add_argument("--img_dir", type=str, default="./cropped_img", help="Path to the image directory")
     parser.add_argument("--split_dir", type=str, default="./splits/split_fold5_seed0", help="Path to the split directory")
     parser.add_argument("--n_splits", type=int, default=5, help="Number of splits")
+    parser.add_argument("--crop_size", type=int, default=50, help="Size of the crop for the images")
+    parser.add_argument("--clip_min", type=float, default=-1000, help="Minimum value for clipping the images")
+    parser.add_argument("--clip_max", type=float, default=500, help="Maximum value for clipping the images")
+    parser.add_argument("--num_workers", type=int, default=4, help="Number of workers for data loading")
+
+    # augmentation args
+    parser.add_argument("--augmentation", action='store_true',default=False, help='Use data augmentation')
+    #image
+    parser.add_argument("--random_flip_prob", type=float, default=0.5, help="Probability of flipping the image")
+    parser.add_argument("--jitter", type=int, default=5, help="Jitter on image coordinates for data augmentation")
+    parser.add_argument("--random_affine_degree", type=float, default=10, help="Degree of affine transformation for data augmentation")
+    parser.add_argument("--random_noise_std", type=float, default=0.02, help="Standard deviation of random noise for data augmentation")
+    parser.add_argument("--random_noise_mean", type=float, default=0, help="Mean of random noise for data augmentation")
+    parser.add_argument("--random_gamma", type=float, default=0.2, help="Gamma value for random gamma transformation for data augmentation")
+    #text
+    parser.add_argument("--reverse_max" ,type = int, default = 2, help="Maximum number of times to reverse the text for data augmentation")
+    parser.add_argument("--random_crop_prob", type=float, default=0.1, help="Probability of cropping the text for data augmentation")
+
+    # model and training args
     parser.add_argument("--k_start", type=int, default=0, help="Start fold for cross-validation")
     parser.add_argument("--k_end", type=int, default=5, help="End fold for cross-validation")
-    parser.add_argument("--debug", action='store_true',default=False, help='debug mode')
     parser.add_argument("--model", type=str, default="openai_ViT-B/32", choices=["openai_ViT-B/32"], help="CLIP Model name")
     parser.add_argument("--batch_size", type=int, default=4, help="Batch size for training")
-    parser.add_argument("--num_workers", type=int, default=4, help="Number of workers for data loading")
     parser.add_argument("--lr", type=float, default=1e-4, help="Learning rate for the optimizer")
     parser.add_argument("--weight_decay", type=float, default=1e-1, help="Weight decay for the optimizer")
     parser.add_argument("--patience", type=int, default=5, help="Patience for the learning rate scheduler")
@@ -38,8 +48,6 @@ def load_args():
     parser.add_argument("--epochs", type=int, default=100, help="Number of epochs for training")
     parser.add_argument("--es_warmup", type=int, default=0, help="Warmup epochs for early stopping")
     parser.add_argument("--es_patience", type=int, default=5, help="Patience for early stopping")
-    parser.add_argument("--jitter", type=int, default=5, help="Jitter for data augmentation")
-    parser.add_argument("--augmentation", action='store_true',default=False, help='Use data augmentation')
     parser.add_argument("--dropout", type=float, default=0.1, help="Dropout rate for the model")
     parser.add_argument("--ga", type=int, default=1, help="Gradient accumulation steps")
     parser.add_argument("--tuning", type=str, default = 'ft', choices = ['ft', 'pt','lora'], help="Tuning method")
@@ -103,7 +111,6 @@ def main():
         
         train_loader = build_loaders(args, fold = fold, mode="train")
         valid_loader = build_loaders(args, fold = fold, mode="val")
-        test_loader = build_loaders(args, fold = fold, mode="test")
 
         # init model and computes total trainable weights
         model = init_model(args)
