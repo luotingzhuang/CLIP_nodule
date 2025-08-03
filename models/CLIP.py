@@ -120,12 +120,13 @@ class CLIPModel(nn.Module):
 
         clip_acc_text = self.compute_accuracy(logits_per_image)
         clip_acc_images = self.compute_accuracy(logits_per_text)
+        
 
         # malignancy prediction
         logits_img = self.classifier_image(img_embeds)
         logits_text = self.classifier_text(text_embeds)
 
-        n_classifiers = 2.0
+        import pdb; pdb.set_trace()
 
         if mode == "train":
             loss_pred = (
@@ -144,7 +145,7 @@ class CLIPModel(nn.Module):
                 self.pred_criterion_val(logits_text, labels) * self.text_loss_weight
             )
 
-        loss_pred = loss_pred / n_classifiers
+        loss_pred = loss_pred / 2
 
         return (
             loss_clip,
