@@ -147,7 +147,7 @@ class CLIPDatasetText(Dataset):
             img = self.augment(img)
 
         # crop and slice from 9 directions
-        nine_slices = slices2d_9(img)
+        nine_slices = slices2d_9(img, jitter =self.jitter)
         img_2d = torch.stack(
             [self.normalize(torch.from_numpy(s)) for s in nine_slices], dim=0
         )
@@ -164,7 +164,7 @@ class CLIPDatasetText(Dataset):
             split_dir (str): Directory containing the split files.
             fold (int): Fold number.
             dataset_csv (pd.DataFrame): DataFrame containing the dataset.
-            mode (str): Mode of the dataset ('train', 'val').]
+            mode (str): Mode of the dataset ('train', 'val').
         Returns:
             pd.DataFrame: Subset of the dataset based on the split.
         """

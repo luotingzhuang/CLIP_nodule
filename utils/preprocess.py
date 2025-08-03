@@ -28,7 +28,7 @@ def random_crop2d(img, crop_size=50, jitter=0):
     return img_2d
 
 
-def slices2d_9(self, img, jitter=0):
+def slices2d_9(img, jitter=0):
     """
     Get 9 slices from the 3D image in 9 different directions.
     Args:
@@ -54,7 +54,7 @@ def slices2d_9(self, img, jitter=0):
     nine_directions.append(rotated_img_12[:, center_ind[7], :])
     nine_directions.append(rotated_img_12[:, :, center_ind[8]])
     nine_directions = [
-        self.convert_to_rgb(self.resize_img(self.random_crop2d(img_i, 50, jitter)))
+        convert_to_rgb(resize_img(random_crop2d(img_i, 50, jitter)))
         for img_i in nine_directions
     ]
 
@@ -74,7 +74,6 @@ def resize_img(img, target_shape=(224, 224)):
     return zoom(img, zoom_factors, order=1)
 
 
-@staticmethod
 def convert_to_rgb(img):
     """
     Convert a single-channel image to a 3-channel RGB image by repeating the channel.
