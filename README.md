@@ -97,6 +97,11 @@ The nodule crop will be saved with the format `{pid}_{nodule_id}.pt`.
 We need to convert semantic features, which were originally in tabular format, into texts. The code for transformation is shown in ``./notebook/tabular2text.ipynb``.
 
 Download `report_generation` from the [link](https://drive.google.com/drive/folders/1LO3t7r6xZ6WakMFTt17snKRggsNCvL21?usp=sharing) and put it under `./CLIP_nodule`.
+```bash
+# You can also download it using gdown
+pip install gdown
+gdown --folder 'https://drive.google.com/drive/folders/1LO3t7r6xZ6WakMFTt17snKRggsNCvL21?usp=sharing'
+```
 
 ### 3. :jigsaw:Create Cross-Validation Splits (Only for Training)
 In our training, we used k-fold CV. The splits folder should have the following structure.
