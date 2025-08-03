@@ -215,8 +215,8 @@ class CLIPDatasetText(Dataset):
     @staticmethod
     def get_weights( semantic_features_subset):
         label_encoder = LabelEncoder()
-        most_occur = semantic_features_subset[LABEL].value_counts().index[0]
         import pdb; pdb.set_trace()
+        most_occur = semantic_features_subset[LABEL].value_counts().index[0]
         labels = label_encoder.fit_transform(semantic_features_subset[LABEL].fillna(most_occur))
         class_counts = np.bincount(labels)
         class_weights = 1.0/class_counts.astype(float)
