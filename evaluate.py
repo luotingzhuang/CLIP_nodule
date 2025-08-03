@@ -102,4 +102,4 @@ if __name__ == "__main__":
 
     os.makedirs(eval_args.save_path, exist_ok=True)
     outputdf.to_csv(os.path.join(eval_args.save_path, "result.csv"), index=False)
-    print("Results saved to", os.path.join(eval_args.save_path, f"{exp_name}_result.csv"))
+    print("Results saved to", os.path.join(eval_args.save_path, f"{exp_name}_{eval_args.ckpt_file.split('.')[0]}_result.csv"))
