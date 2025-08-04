@@ -144,6 +144,7 @@ CUDA_VISIBLE_DEVICES=0 python train.py \
 | `--text_loss_weight` | float   | 1.0      | Weight for the text loss.                       |
 | `--weighted`         | str     | 'diagnosis' | Weighted sampling method (`diagnosis`, `semantic`). |
 | `--tau`              | float   | 0.07     | Temperature for the CLIP loss.                  |
+| `--out_dim`          | int     | 256      | Output dimension of last layer before classifier.  |
 | `--position`         | str     | 'all'    | Where to put the LoRA modules.                  |
 | `--encoder`          | str     | 'both'   | Encoder to apply LoRA to (`text`, `vision`, `both`). |
 | `--params`           | list[str]| ['q','k','v'] | Attention matrices to apply LoRA to.        |
@@ -192,7 +193,8 @@ CUDA_VISIBLE_DEVICES=0 python evaluate.py \
   --img_dir ./cropped_img \
   --num_workers 4 \
   --save_path ./results_csv \
-  --ckpt_file best_both.pt
+  --ckpt_file best_both.pt \
+  --calibrate
 ```
 
 ## Acknowledgements
