@@ -99,7 +99,6 @@ We need to convert semantic features, which were originally in tabular format, i
 Download `report_generation` from the [link](https://drive.google.com/drive/folders/1LO3t7r6xZ6WakMFTt17snKRggsNCvL21?usp=sharing) and put it under `./CLIP_nodule`.
 ```bash
 # You can also download it using gdown
-pip install gdown
 gdown --folder 'https://drive.google.com/drive/folders/1LO3t7r6xZ6WakMFTt17snKRggsNCvL21?usp=sharing'
 ```
 
