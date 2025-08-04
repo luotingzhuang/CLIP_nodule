@@ -28,7 +28,7 @@
 
 ## :rocket:Getting Started
 ### 1. :hammer_and_wrench:Setup Environment
-
+This project supports both GPU (CUDA) and CPU-only environments.
 #### Option 1: Docker container
 ```bash
 docker run --shm-size=8g --gpus all -it --rm -p 1234:1234 -v .:/workspace -v /etc/localtime:/etc/localtime:ro nvcr.io/nvidia/pytorch:24.03-py3
