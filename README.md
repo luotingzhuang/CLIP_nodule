@@ -31,7 +31,7 @@
 
 #### Option 1: Docker container
 ```bash
-docker run --shm-size=8g --gpus all -it --rm -v .:/workspace -v /etc/localtime:/etc/localtime:ro nvcr.io/nvidia/pytorch:24.03-py3 -p 6006:6006
+docker run --shm-size=8g --gpus all -it --rm -p 6006:6006 -v .:/workspace -v /etc/localtime:/etc/localtime:ro nvcr.io/nvidia/pytorch:24.03-py3
 ```
 - If you use `-v .:/workspace` as shown above, Docker will map the **current directory** to `/workspace` inside the container.
 - To map a different folder to a specific path in a docker container, you can replace `-v .:/workspace` with `-v /path/to/local/folder:/path/in/container`.
