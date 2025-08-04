@@ -91,7 +91,8 @@ The follwing function is adapted from foundation cancer image biomarker model co
 https://github.com/AIM-Harvard/foundation-cancer-image-biomarker
 """
 
-
+def as_tensor(x):
+    return x['image_path'].as_tensor() 
 def get_transforms_raw(spatial_size=(50, 50, 50), jitter=None):
     return monai_transforms.Compose(
         [
@@ -120,7 +121,7 @@ def get_transforms_raw(spatial_size=(50, 50, 50), jitter=None):
             monai_transforms.SpatialPadd(
                 keys=["image_path"], spatial_size=spatial_size
             ),
-            torchvision.transforms.Lambda(lambda x: x["image_path"].as_tensor()),
+            torchvision.transforms.Lambda(as_tensor),
         ]
     )
 

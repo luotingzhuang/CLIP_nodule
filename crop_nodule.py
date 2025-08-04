@@ -58,7 +58,7 @@ def loadargs():
         help="Path to the dataset",
     )
     parser.add_argument(
-        "--num_workers", type=int, default=1, help="Number of workers for data loading"
+        "--num_workers", type=int, default=4, help="Number of workers for data loading"
     )
     parser.add_argument(
         "--save_path",
