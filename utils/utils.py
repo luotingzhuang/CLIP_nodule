@@ -11,6 +11,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class TeeLogger:
+    """
+    TeeLogger class to log output to both terminal and a file.
+    """
     def __init__(self, filename):
         self.terminal = sys.stdout
         self.log = open(filename, "w")
@@ -46,6 +49,9 @@ class AvgMeter:
 
 
 def get_lr(optimizer):
+    """
+    Get the current learning rate from the optimizer.
+    """
     for param_group in optimizer.param_groups:
         return param_group["lr"]
 
@@ -159,6 +165,7 @@ def build_loaders(args, fold, mode):
     dataset = CLIPDatasetText(args, fold, mode=mode, seed=0)
     train_collate_fn = CLIPDatasetTextCollator(args, mode=mode)
 
+    # Compute sample weights
     if args.weighted == "diagnosis":
         sample_weights = dataset.sample_weights
     elif args.weighted == "semantic":
@@ -166,6 +173,7 @@ def build_loaders(args, fold, mode):
     else:
         raise ValueError("Invalid weighted argument")
 
+    # define sampler based on mode
     if mode == "train":
         sampler = WeightedRandomSampler(
             weights=sample_weights, num_samples=len(dataset), replacement=True

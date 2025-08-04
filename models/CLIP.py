@@ -119,13 +119,14 @@ class CLIPModel(nn.Module):
         img_embeds = self.encode_image(pixel_values)
         text_embeds = self.encode_text(input_ids)
 
-        # clip
+        # normalization on embeddings
         img_embeds = img_embeds / img_embeds.norm(dim=-1, keepdim=True)
         text_embeds = text_embeds / text_embeds.norm(dim=-1, keepdim=True)
 
         logits_per_image = self.compute_logits(img_embeds, text_embeds)
         logits_per_text = logits_per_image.t()
 
+        # CLIP loss
         loss_clip = self.clip_loss(logits_per_text)
 
         clip_acc_text = self.compute_accuracy(logits_per_image)
@@ -163,19 +164,45 @@ class CLIPModel(nn.Module):
         )
 
     def compute_logits(self, img_emb, text_emb):
+        """
+        Computes the logits (cosine similarity) for image-text pairs.
+        Args:
+            img_emb: Image embeddings.
+            text_emb: Text embeddings.
+        Returns:
+            logits_per_text: Logits for text-image similarity.
+        """
+        # Clamp logit scale to avoid overflow
         self.logit_scale.data = torch.clamp(self.logit_scale.data, 0, 4.6052)
         logit_scale = self.logit_scale.exp()
+        # Compute logits
         logits_per_text = torch.matmul(text_emb, img_emb.t()) * logit_scale
         return logits_per_text.t()
 
     def clip_loss(self, similarity: torch.Tensor) -> torch.Tensor:
-
+        """
+        Computes the CLIP loss based on the similarity matrix.
+        Args:
+            similarity: Similarity matrix between image and text embeddings.
+        Returns:
+            loss: Computed CLIP loss.
+        """
+        # targets are the diagonal elements of the similarity matrix
         targets = torch.arange(similarity.size(0)).to(device)
+
+        # Compute losses
         texts_loss = self.clip_criterion(similarity, targets, smoothing=0.1)
         images_loss = self.clip_criterion(similarity.t(), targets, smoothing=0.1)
         return (texts_loss + images_loss) / 2.0 * self.clip_loss_weight
 
     def compute_accuracy(self, logits):
+        """
+        Computes the accuracy of the positive pair predictions.
+        Args:
+            logits: Logits for the image-text pairs.
+        Returns:
+            accuracy: Accuracy of the predictions.
+        """
         gt = torch.arange(logits.size(0)).to(device)
         logits = F.softmax(logits, dim=-1)
         predictions = torch.argmax(logits, dim=-1)
