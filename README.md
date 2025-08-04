@@ -72,7 +72,6 @@ Due to data sharing restrictions, we cannot release the in-house annotated seman
 CT scans in our sample data can be downloaded from the [link](https://drive.google.com/drive/folders/1WcOUPaSRRIENU-U1SQpC41WZz2nPP4iH?usp=drive_link).
 ```bash
 # You can also download it using gdown
-pip install 
 gdown --folder 'https://drive.google.com/drive/folders/1MhcOCLpG1OrdGyQw9OiwNQELZKfIBGlr?usp=drive_link'
 ```
 :warning:Note: Try add `--fuzzy --no-cookies --no-check-certificate` if there is an error running the gdown command. Some institutional Wi-Fi may block Google services. If it still does not work, try downloading the folder using the link via a browser.
