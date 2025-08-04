@@ -31,11 +31,11 @@
 
 #### Option 1: Docker container
 ```bash
-docker run --shm-size=8g --gpus all -it --rm -p 6006:6006 -v .:/workspace -v /etc/localtime:/etc/localtime:ro nvcr.io/nvidia/pytorch:24.03-py3
+docker run --shm-size=8g --gpus all -it --rm -p 1234:1234 -v .:/workspace -v /etc/localtime:/etc/localtime:ro nvcr.io/nvidia/pytorch:24.03-py3
 ```
 - If you use `-v .:/workspace` as shown above, Docker will map the **current directory** to `/workspace` inside the container.
 - To map a different folder to a specific path in a docker container, you can replace `-v .:/workspace` with `-v /path/to/local/folder:/path/in/container`.
-- `-p 6006:6006` can be modified to match your preferred host and container ports as needed.
+- `-p 1234:1234` can be modified to match your preferred host and container ports as needed.
 
 #### Option 2: Conda environment
 ```bash
@@ -72,7 +72,7 @@ Due to data sharing restrictions, we cannot release the in-house annotated seman
 CT scans in our sample data can be downloaded from the [link](https://drive.google.com/drive/folders/1WcOUPaSRRIENU-U1SQpC41WZz2nPP4iH?usp=drive_link).
 ```bash
 # You can also download it using gdown
-pip install gdown
+pip install 
 gdown --folder 'https://drive.google.com/drive/folders/1MhcOCLpG1OrdGyQw9OiwNQELZKfIBGlr?usp=drive_link'
 ```
 :warning:Note: Try add `--fuzzy --no-cookies --no-check-certificate` if there is an error running the gdown command. Some institutional Wi-Fi may block Google services. If it still does not work, try downloading the folder using the link via a browser.
@@ -168,6 +168,11 @@ experiment_YYYYMMDD_HHMMSS/
 │   └── events.out.tfevents...  # TensorBoard logs
 ├── ...
 ```
+The training logs, including loss and evaluation metrics, are saved. You can visualize them with TensorBoard by running:
+```bash
+tensorboard --logdir=./results --port=1234
+```
+Then open `http://<IP Address>:1234` in your browser.
 
 ### 2. :arrow_forward:Run Inference
 
@@ -180,7 +185,11 @@ CUDA_VISIBLE_DEVICES=0 python evaluate.py \
   --save_path ./results_csv \
   --ckpt_file best_both.pt
 ```
-The output CSV file will be saved at `{save_path}/experiment_YYYYMMDD_HHMMSS_best_both_result.csv`. It includes the pid and the corresponding predicted probabilities. Each `raw_X` column represents the probability output from fold X, while the `ensemble` column contains the average probability across all folds.
+The output CSV file will be saved at `{save_path}/experiment_YYYYMMDD_HHMMSS_best_both_result.csv`. This file includes:
+- `pid`: the unique patient or sample ID
+- `raw_X`: the predicted probability from fold X
+- `ensemble`: the average predicted probability across all folds
+Each row corresponds to a sample and its associated prediction results.
 
 ### 3. :arrow_forward:Run Inference Using Our Pretrained Model
 Download `ckpt` from the [link](https://drive.google.com/drive/folders/1WcOUPaSRRIENU-U1SQpC41WZz2nPP4iH?usp=drive_link) and put it under `./CLIP_nodule`.
@@ -198,6 +207,12 @@ CUDA_VISIBLE_DEVICES=0 python evaluate.py \
   --ckpt_file best_both.pt \
   --calibrate
 ```
+
+In our study, we performed [beta calibration](https://github.com/betacal/python) to prevent the model from being overconfident and ensure that the model's predicted probabilities reflect the true likelihoods. To enable calibration, add the `--calibrate` flag when running the evaluation script. This will generate additional columns in the output:
+- `calibrated_X`: the calibrated probability from fold X
+- `calibrated_ensemble`: the average of the calibrated probabilities across all folds
+
+
 
 ## Acknowledgements
 This project is based on the code from the following repository:
