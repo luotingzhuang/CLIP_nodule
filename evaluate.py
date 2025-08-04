@@ -63,7 +63,7 @@ if __name__ == "__main__":
     args = load_args(eval_args.model_path)
     args.dataset_path = eval_args.dataset_path
     args.img_dir = eval_args.img_dir
-    exp_name = eval_args.model_path.split("/")[-1]
+    exp_name = os.path.basename(os.path.normpath(eval_args.model_path))
 
     # DataLoaders
     test_dataset = VisionDatasetText(args)
