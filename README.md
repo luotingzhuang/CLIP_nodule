@@ -40,8 +40,11 @@ docker run --shm-size=8g --gpus all -it --rm -p 1234:1234 -v .:/workspace -v /et
 #### Option 2: Conda environment
 ```bash
 conda create -n clip_nodule python=3.10 -y 
-conda activate clip_nodule 
+conda activate clip_nodule
+#gpu
 conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+#cpu
+conda install pytorch torchvision torchaudio cpuonly -c pytorch
 ```
 
 ### 2. :package:Clone the Repository and Install Packages
