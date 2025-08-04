@@ -52,7 +52,7 @@ def load_eval_args():
     parser.add_argument(
         "--calibrate",
         action="store_true",
-        help="Whether to use calibration for evaluation",
+        help="Whether to use calibration for evaluation in pretrained model",
     )
 
     return parser.parse_args()
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     outputdf.loc[:, "ensemble"] = outputdf.mean(1).values
     outputdf = pd.concat([all_test_result[0][["pid", "nodule_id"]], outputdf], axis=1)
 
-
+    #calibrate results
     if eval_args.calibrate:
         print("Calibrating results...")
         import joblib
