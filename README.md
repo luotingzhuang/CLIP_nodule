@@ -77,8 +77,8 @@ gdown --folder 'https://drive.google.com/drive/folders/1MhcOCLpG1OrdGyQw9OiwNQEL
 ```
 :warning:Note: Try add `--fuzzy --no-cookies --no-check-certificate` if there is an error running the gdown command. Some institutional Wi-Fi may block Google services. If it still does not work, try downloading the folder using the link via a browser.
 
-## Preprocessing
-### 1. :broom: Image Preprocessing
+## :broom: Preprocessing
+### 1. :paintbrush: Image Preprocessing
 First, we need to crop a 100×100×100 mm bounding box around the nodule and save the resulting cropped volume as a `.pt` file for later use.
 
 ```bash
@@ -115,7 +115,7 @@ splits/
 ```
 Each CSV file must contain a single column named pid, which lists all patient IDs included in that split. You can find example CSV files in the `splits` folder of the repository. We also provide sample code to generate the splits in the `./notebook/create_splits.ipynb`.
 
-## Model Training and Inference
+## :brain:Model Training and Inference
 ### 1. :arrow_forward:Run Training
 
 ```bash
