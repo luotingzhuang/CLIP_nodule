@@ -31,10 +31,11 @@
 
 #### Option 1: Docker container
 ```bash
-docker run --shm-size=8g --gpus all -it --rm -v .:/workspace -v /etc/localtime:/etc/localtime:ro nvcr.io/nvidia/pytorch:24.03-py3
+docker run --shm-size=8g --gpus all -it --rm -v .:/workspace -v /etc/localtime:/etc/localtime:ro nvcr.io/nvidia/pytorch:24.03-py3 -p 6006:6006
 ```
 - If you use `-v .:/workspace` as shown above, Docker will map the **current directory** to `/workspace` inside the container.
 - To map a different folder to a specific path in a docker container, you can replace `-v .:/workspace` with `-v /path/to/local/folder:/path/in/container`.
+- `-p 6006:6006` can be modified to match your preferred host and container ports as needed.
 
 #### Option 2: Conda environment
 ```bash
@@ -94,7 +95,7 @@ Note: The crop size should typically be set slightly larger than the target size
 The nodule crop will be saved with the format `{pid}_{nodule_id}.pt`.
 
 ### 2. :page_facing_up:Semantic Features Preprocessing (Only for Training)
-We need to convert semantic features, which were originally in tabular format, into texts. The code for transformation is shown in ``./notebook/tabular2text.ipynb``.
+We need to convert semantic features, which were originally in tabular format, into texts. The code for transformation is shown in `./notebook/tabular2text.ipynb`.
 
 Download `report_generation` from the [link](https://drive.google.com/drive/folders/1LO3t7r6xZ6WakMFTt17snKRggsNCvL21?usp=sharing) and put it under `./CLIP_nodule`.
 ```bash
@@ -112,7 +113,7 @@ splits/
 │   └── val_pid.csv
 ├── ...
 ```
-Each CSV file must contain a single column named pid, which lists all patient IDs included in that split. You can find example CSV files in the ``splits`` folder of the repository. We also provide sample code to generate the splits in the ``./notebook/create_splits.ipynb``.
+Each CSV file must contain a single column named pid, which lists all patient IDs included in that split. You can find example CSV files in the `splits` folder of the repository. We also provide sample code to generate the splits in the `./notebook/create_splits.ipynb`.
 
 ## Model Training and Inference
 ### 1. :arrow_forward:Run Training
@@ -154,10 +155,11 @@ CUDA_VISIBLE_DEVICES=0 python train.py \
 
 Additional arguments, such as those related to data augmentation, can be found in the script.
 
-The checkpoints and arguments are saved in the ``result_dir``, under folders named in the format ``experiment_YYYYMMDD_HHMMSS``.
+The checkpoints and arguments are saved in the `result_dir`, under folders named in the format `experiment_YYYYMMDD_HHMMSS`.
 ```
 experiment_YYYYMMDD_HHMMSS/
 ├── args.txt               # All training arguments saved as plain text
+├── log.txt                # Console output and training logs
 ├── fold_0/
 │   ├── best_both.pt       # Checkpoint with best combined CLIP + prediction loss
 │   ├── best_clip.pt       # Checkpoint with best CLIP loss
