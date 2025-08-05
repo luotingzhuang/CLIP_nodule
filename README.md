@@ -104,6 +104,7 @@ Download `report_generation` from the [link](https://drive.google.com/drive/fold
 # You can also download it using gdown
 gdown --folder 'https://drive.google.com/drive/folders/1LO3t7r6xZ6WakMFTt17snKRggsNCvL21?usp=sharing'
 ```
+Code for extracting LIDC semantic features and mapping them to UCLA's semantic features is available in `./notebook/lidc_preprocess.ipynb`.
 
 ### 3. :jigsaw:Create Cross-Validation Splits (Only for Training)
 In our training, we used k-fold CV. The splits folder should have the following structure.
