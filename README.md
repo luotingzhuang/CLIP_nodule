@@ -226,11 +226,18 @@ This project is based on the code from the following repository:
 ## CITATION
 ```bibtex
 @article{zhuang2025vision,
-  title={Vision-Language Model-Based Semantic-Guided Imaging Biomarker for Early Lung Cancer Detection},
-  author={Zhuang, Luoting and Tabatabaei, Seyed Mohammad Hossein and Salehi-Rad, Ramin and Tran, Linh M and Aberle, Denise R and Prosper, Ashley E and Hsu, William},
-  journal={arXiv preprint arXiv:2504.21344},
-  year={2025}
+    title = {Vision-language model-based semantic-guided imaging biomarker for lung nodule malignancy prediction},
+    journal = {Journal of Biomedical Informatics},
+    volume = {172},
+    pages = {104947},
+    year = {2025},
+    issn = {1532-0464},
+    doi = {https://doi.org/10.1016/j.jbi.2025.104947},
+    url = {https://www.sciencedirect.com/science/article/pii/S1532046425001765},
+    author = {Luoting Zhuang and Seyed Mohammad Hossein Tabatabaei and Ramin Salehi-Rad and Linh M. Tran and Denise R. Aberle and Ashley E. Prosper and William Hsu}
 }
+
+
 ```
 
 ## CONTACT
