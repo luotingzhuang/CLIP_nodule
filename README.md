@@ -10,6 +10,8 @@
 
 <sup>2</sup>Department of Medicine, Division of Pulmonology and Critical Care, David Geffen School of Medicine at UCLA, Los Angeles, CA
 
+<sup>3</sup>VA Greater Los Angeles Healthcare System, Los Angeles, 90073, CA, USA
+
 
 <p align="center">
     <img src="figures/abstract.jpg" width="80%"/> <br />
@@ -20,7 +22,7 @@
 
 **Objective:** Machine learning models have utilized semantic features, deep features, or both to assess lung nodule malignancy. However, their reliance on manual annotation during inference, limited interpretability, and sensitivity to imaging variations hinder their application in real-world clinical settings. Thus, this research aims to integrate semantic features derived from radiologists’ assessments of nodules, guiding the model to learn clinically relevant, robust, and explainable imaging features for predicting lung cancer. 
 
-**Methods:** We obtained 938 low-dose CT scans from the National Lung Screening Trial (NLST) with 1,246 nodules and semantic features. Additionally, the Lung Image Database Consortium dataset contains 1,018 CT scans, with 2,625 lesions annotated for nodule characteristics. Three external datasets were obtained from UCLA Health, the LUNGx Challenge, and the Duke Lung Cancer Screening. For imaging input, we obtained 2D nodule slices from nine directions from 50×50×50mm nodule crop. We converted structured semantic features into sentences using Gemini. We fine-tuned a pretrained Contrastive Language-Image Pretraining (CLIP) model with a parameter-efficient fine-tuning approach to align imaging and semantic features and predict the one-year lung cancer diagnosis.  
+**Methods:** We obtained 938 low-dose CT scans from the National Lung Screening Trial (NLST) with 1,261 nodules and semantic features. Additionally, the Lung Image Database Consortium dataset contains 1,018 CT scans, with 2,625 lesions annotated for nodule characteristics. Three external datasets were obtained from UCLA Health, the LUNGx Challenge, and the Duke Lung Cancer Screening. For imaging input, we obtained 2D nodule slices from nine directions from 50×50×50mm nodule crop. We converted structured semantic features into sentences using Gemini. We fine-tuned a pretrained Contrastive Language-Image Pretraining (CLIP) model with a parameter-efficient fine-tuning approach to align imaging and semantic features and predict the one-year lung cancer diagnosis.  
 
 **Results:** We evaluated the performance of the one-year diagnosis of lung cancer. Our model demonstrated an AUROC of 0.901 and AUPRC of 0.776 in the NLST test set, also outperforming state-of-the-art(SOTA) models on external datasets. Using CLIP, we also obtained predictions on semantic features through zero-shot inference, such as nodule margin (AUROC: 0.812), nodule consistency (0.812), and pleural attachment (0.840).  
 
