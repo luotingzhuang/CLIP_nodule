@@ -1,7 +1,7 @@
 # Vision-Language Model-Based Semantic-Guided Imaging Biomarker for Lung Nodule Malignancy Prediction
 
 [![arXiv](https://img.shields.io/badge/arXiv-2504.21344-b31b1b.svg)](https://arxiv.org/abs/2504.21344)
-
+[![Elsevier](https://img.shields.io/badge/Elsevier-Paper-blue.svg)](https://www.sciencedirect.com/science/article/pii/S1532046425001765)
 
 
 **Luoting Zhuang, Seyed Mohammad Hossein Tabatabaei, Ramin Salehi-Rad, Linh M. Tran, Denise R. Aberle, Ashley E. Prosper, William Hsu**
